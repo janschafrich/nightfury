@@ -1,0 +1,16 @@
+[project]
+name = "nfanalysis"
+version = "0.1.0"
+description = "Analysis and plotting tools for the nightfury (nf) RV32IM simulator"
+requires-python = ">=3.10"
+dependencies = [
+    "pandas",
+    "matplotlib",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["nfanalysis*"]
