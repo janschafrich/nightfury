@@ -9,6 +9,7 @@ list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
 
 add_executable(nf_unit_tests
     test_placeholder.cpp
+    test_decoder.cpp
 )
 target_link_libraries(nf_unit_tests PRIVATE nf_core Catch2::Catch2WithMain)
 
