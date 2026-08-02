@@ -2,6 +2,6 @@
 
 namespace nf::core {
 
-int placeholder() { return 0; }
+int Placeholder() { return 0; }
 
 }  // namespace nf::core

@@ -3,5 +3,5 @@
 #include "nf/sim/simulator.hpp"
 
 TEST_CASE("Simulator reports a version string", "[sim]") {
-    REQUIRE(nf::sim::Simulator::version() == "0.1.0");
+    REQUIRE(nf::sim::Simulator::Version() == "0.1.0");
 }

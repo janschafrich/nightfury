@@ -1,4 +1,5 @@
-#pragma once
+#ifndef NF_ISA_DECODER_HPP_
+#define NF_ISA_DECODER_HPP_
 
 #include <cstdint>
 #include <string_view>
@@ -6,26 +7,26 @@
 namespace nf::isa {
 
 // RV32I/M instruction encodings. Order matches the six base formats;
-// Invalid marks a word that didn't decode to a known instruction.
-enum class Format : uint8_t { R, I, S, B, U, J, Invalid };
+// kInvalid marks a word that didn't decode to a known instruction.
+enum class Format : uint8_t { kR, kI, kS, kB, kU, kJ, kInvalid };
 
 enum class Mnemonic : uint8_t {
     // RV32I
-    LUI, AUIPC, JAL, JALR,
-    BEQ, BNE, BLT, BGE, BLTU, BGEU,
-    LB, LH, LW, LBU, LHU,
-    SB, SH, SW,
-    ADDI, SLTI, SLTIU, XORI, ORI, ANDI, SLLI, SRLI, SRAI,
-    ADD, SUB, SLL, SLT, SLTU, XOR, SRL, SRA, OR, AND,
+    kLui, kAuipc, kJal, kJalr,
+    kBeq, kBne, kBlt, kBge, kBltu, kBgeu,
+    kLb, kLh, kLw, kLbu, kLhu,
+    kSb, kSh, kSw,
+    kAddi, kSlti, kSltiu, kXori, kOri, kAndi, kSlli, kSrli, kSrai,
+    kAdd, kSub, kSll, kSlt, kSltu, kXor, kSrl, kSra, kOr, kAnd,
     // System
-    FENCE, ECALL, EBREAK,
+    kFence, kEcall, kEbreak,
     // RV32M
-    MUL, MULH, MULHSU, MULHU, DIV, DIVU, REM, REMU,
+    kMul, kMulh, kMulhsu, kMulhu, kDiv, kDivu, kRem, kRemu,
 
-    INVALID,
+    kInvalid,
 };
 
-std::string_view to_string(Mnemonic m);
+std::string_view ToString(Mnemonic m);
 
 // Fully identified instruction: which operation, which registers, and the
 // sign-extended immediate (format-dependent bit layout already resolved).
@@ -33,8 +34,8 @@ std::string_view to_string(Mnemonic m);
 // the ID/EX register, so decode logic lives here and nowhere else.
 struct DecodedInstruction {
     uint32_t raw = 0;
-    Format format = Format::Invalid;
-    Mnemonic mnemonic = Mnemonic::INVALID;
+    Format format = Format::kInvalid;
+    Mnemonic mnemonic = Mnemonic::kInvalid;
 
     uint8_t rd = 0;
     uint8_t rs1 = 0;
@@ -43,12 +44,14 @@ struct DecodedInstruction {
     uint8_t funct7 = 0;
     int32_t imm = 0;
 
-    bool valid() const { return mnemonic != Mnemonic::INVALID; }
+    bool Valid() const { return mnemonic != Mnemonic::kInvalid; }
 };
 
 class Decoder {
 public:
-    static DecodedInstruction decode(uint32_t word);
+    static DecodedInstruction Decode(uint32_t word);
 };
 
 }  // namespace nf::isa
+
+#endif  // NF_ISA_DECODER_HPP_

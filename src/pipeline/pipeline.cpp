@@ -2,6 +2,6 @@
 
 namespace nf::pipeline {
 
-int placeholder() { return 0; }
+int Placeholder() { return 0; }
 
 }  // namespace nf::pipeline

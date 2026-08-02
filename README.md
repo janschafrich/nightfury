@@ -51,8 +51,10 @@ cmake --build build/debug --target nf-pipeline
 # Build
 cmake --build build/debug --target nf_unit_tests
 
-# Run
+# Run tests
 ./build/debug/bin/nf_unit_tests
+# or
+ctest --test-dir build/debug --output-on-failure
 ```
 
 

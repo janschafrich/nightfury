@@ -22,183 +22,183 @@ constexpr uint32_t kFunct7Alt = 0b0100000;   // SUB / SRA
 constexpr uint32_t kFunct7Mul = 0b0000001;   // RV32M
 
 // Extracts bits [hi:lo] (inclusive) of word, right-justified.
-constexpr uint32_t bits(uint32_t word, int hi, int lo) {
+constexpr uint32_t Bits(uint32_t word, int hi, int lo) {
     return (word >> lo) & ((1u << (hi - lo + 1)) - 1);
 }
 
 // Sign-extends the low `width` bits of value to a full 32-bit signed value.
-constexpr int32_t sign_extend(uint32_t value, int width) {
+constexpr int32_t SignExtend(uint32_t value, int width) {
     const uint32_t shift = 32 - static_cast<uint32_t>(width);
     return static_cast<int32_t>(value << shift) >> shift;
 }
 
-int32_t imm_i(uint32_t w) { return sign_extend(bits(w, 31, 20), 12); }
+int32_t ImmI(uint32_t w) { return SignExtend(Bits(w, 31, 20), 12); }
 
-int32_t imm_s(uint32_t w) {
-    return sign_extend((bits(w, 31, 25) << 5) | bits(w, 11, 7), 12);
+int32_t ImmS(uint32_t w) {
+    return SignExtend((Bits(w, 31, 25) << 5) | Bits(w, 11, 7), 12);
 }
 
-int32_t imm_b(uint32_t w) {
-    const uint32_t v = (bits(w, 31, 31) << 12) | (bits(w, 7, 7) << 11) |
-                        (bits(w, 30, 25) << 5) | (bits(w, 11, 8) << 1);
-    return sign_extend(v, 13);
+int32_t ImmB(uint32_t w) {
+    const uint32_t v = (Bits(w, 31, 31) << 12) | (Bits(w, 7, 7) << 11) |
+                        (Bits(w, 30, 25) << 5) | (Bits(w, 11, 8) << 1);
+    return SignExtend(v, 13);
 }
 
-int32_t imm_u(uint32_t w) { return static_cast<int32_t>(w & 0xFFFFF000u); }
+int32_t ImmU(uint32_t w) { return static_cast<int32_t>(w & 0xFFFFF000u); }
 
-int32_t imm_j(uint32_t w) {
-    const uint32_t v = (bits(w, 31, 31) << 20) | (bits(w, 19, 12) << 12) |
-                        (bits(w, 20, 20) << 11) | (bits(w, 30, 21) << 1);
-    return sign_extend(v, 21);
+int32_t ImmJ(uint32_t w) {
+    const uint32_t v = (Bits(w, 31, 31) << 20) | (Bits(w, 19, 12) << 12) |
+                        (Bits(w, 20, 20) << 11) | (Bits(w, 30, 21) << 1);
+    return SignExtend(v, 21);
 }
 
 }  // namespace
 
-std::string_view to_string(Mnemonic m) {
+std::string_view ToString(Mnemonic m) {
     switch (m) {
-        case Mnemonic::LUI: return "lui";
-        case Mnemonic::AUIPC: return "auipc";
-        case Mnemonic::JAL: return "jal";
-        case Mnemonic::JALR: return "jalr";
-        case Mnemonic::BEQ: return "beq";
-        case Mnemonic::BNE: return "bne";
-        case Mnemonic::BLT: return "blt";
-        case Mnemonic::BGE: return "bge";
-        case Mnemonic::BLTU: return "bltu";
-        case Mnemonic::BGEU: return "bgeu";
-        case Mnemonic::LB: return "lb";
-        case Mnemonic::LH: return "lh";
-        case Mnemonic::LW: return "lw";
-        case Mnemonic::LBU: return "lbu";
-        case Mnemonic::LHU: return "lhu";
-        case Mnemonic::SB: return "sb";
-        case Mnemonic::SH: return "sh";
-        case Mnemonic::SW: return "sw";
-        case Mnemonic::ADDI: return "addi";
-        case Mnemonic::SLTI: return "slti";
-        case Mnemonic::SLTIU: return "sltiu";
-        case Mnemonic::XORI: return "xori";
-        case Mnemonic::ORI: return "ori";
-        case Mnemonic::ANDI: return "andi";
-        case Mnemonic::SLLI: return "slli";
-        case Mnemonic::SRLI: return "srli";
-        case Mnemonic::SRAI: return "srai";
-        case Mnemonic::ADD: return "add";
-        case Mnemonic::SUB: return "sub";
-        case Mnemonic::SLL: return "sll";
-        case Mnemonic::SLT: return "slt";
-        case Mnemonic::SLTU: return "sltu";
-        case Mnemonic::XOR: return "xor";
-        case Mnemonic::SRL: return "srl";
-        case Mnemonic::SRA: return "sra";
-        case Mnemonic::OR: return "or";
-        case Mnemonic::AND: return "and";
-        case Mnemonic::FENCE: return "fence";
-        case Mnemonic::ECALL: return "ecall";
-        case Mnemonic::EBREAK: return "ebreak";
-        case Mnemonic::MUL: return "mul";
-        case Mnemonic::MULH: return "mulh";
-        case Mnemonic::MULHSU: return "mulhsu";
-        case Mnemonic::MULHU: return "mulhu";
-        case Mnemonic::DIV: return "div";
-        case Mnemonic::DIVU: return "divu";
-        case Mnemonic::REM: return "rem";
-        case Mnemonic::REMU: return "remu";
-        case Mnemonic::INVALID: return "invalid";
+        case Mnemonic::kLui: return "lui";
+        case Mnemonic::kAuipc: return "auipc";
+        case Mnemonic::kJal: return "jal";
+        case Mnemonic::kJalr: return "jalr";
+        case Mnemonic::kBeq: return "beq";
+        case Mnemonic::kBne: return "bne";
+        case Mnemonic::kBlt: return "blt";
+        case Mnemonic::kBge: return "bge";
+        case Mnemonic::kBltu: return "bltu";
+        case Mnemonic::kBgeu: return "bgeu";
+        case Mnemonic::kLb: return "lb";
+        case Mnemonic::kLh: return "lh";
+        case Mnemonic::kLw: return "lw";
+        case Mnemonic::kLbu: return "lbu";
+        case Mnemonic::kLhu: return "lhu";
+        case Mnemonic::kSb: return "sb";
+        case Mnemonic::kSh: return "sh";
+        case Mnemonic::kSw: return "sw";
+        case Mnemonic::kAddi: return "addi";
+        case Mnemonic::kSlti: return "slti";
+        case Mnemonic::kSltiu: return "sltiu";
+        case Mnemonic::kXori: return "xori";
+        case Mnemonic::kOri: return "ori";
+        case Mnemonic::kAndi: return "andi";
+        case Mnemonic::kSlli: return "slli";
+        case Mnemonic::kSrli: return "srli";
+        case Mnemonic::kSrai: return "srai";
+        case Mnemonic::kAdd: return "add";
+        case Mnemonic::kSub: return "sub";
+        case Mnemonic::kSll: return "sll";
+        case Mnemonic::kSlt: return "slt";
+        case Mnemonic::kSltu: return "sltu";
+        case Mnemonic::kXor: return "xor";
+        case Mnemonic::kSrl: return "srl";
+        case Mnemonic::kSra: return "sra";
+        case Mnemonic::kOr: return "or";
+        case Mnemonic::kAnd: return "and";
+        case Mnemonic::kFence: return "fence";
+        case Mnemonic::kEcall: return "ecall";
+        case Mnemonic::kEbreak: return "ebreak";
+        case Mnemonic::kMul: return "mul";
+        case Mnemonic::kMulh: return "mulh";
+        case Mnemonic::kMulhsu: return "mulhsu";
+        case Mnemonic::kMulhu: return "mulhu";
+        case Mnemonic::kDiv: return "div";
+        case Mnemonic::kDivu: return "divu";
+        case Mnemonic::kRem: return "rem";
+        case Mnemonic::kRemu: return "remu";
+        case Mnemonic::kInvalid: return "invalid";
     }
     return "invalid";
 }
 
-DecodedInstruction Decoder::decode(uint32_t word) {
+DecodedInstruction Decoder::Decode(uint32_t word) {
     DecodedInstruction ins;
     ins.raw = word;
 
-    const uint32_t opcode = bits(word, 6, 0);
-    ins.rd = static_cast<uint8_t>(bits(word, 11, 7));
-    ins.funct3 = static_cast<uint8_t>(bits(word, 14, 12));
-    ins.rs1 = static_cast<uint8_t>(bits(word, 19, 15));
-    ins.rs2 = static_cast<uint8_t>(bits(word, 24, 20));
-    ins.funct7 = static_cast<uint8_t>(bits(word, 31, 25));
+    const uint32_t opcode = Bits(word, 6, 0);
+    ins.rd = static_cast<uint8_t>(Bits(word, 11, 7));
+    ins.funct3 = static_cast<uint8_t>(Bits(word, 14, 12));
+    ins.rs1 = static_cast<uint8_t>(Bits(word, 19, 15));
+    ins.rs2 = static_cast<uint8_t>(Bits(word, 24, 20));
+    ins.funct7 = static_cast<uint8_t>(Bits(word, 31, 25));
 
     switch (opcode) {
         case kOpLui:
-            ins.format = Format::U;
-            ins.mnemonic = Mnemonic::LUI;
-            ins.imm = imm_u(word);
+            ins.format = Format::kU;
+            ins.mnemonic = Mnemonic::kLui;
+            ins.imm = ImmU(word);
             break;
 
         case kOpAuipc:
-            ins.format = Format::U;
-            ins.mnemonic = Mnemonic::AUIPC;
-            ins.imm = imm_u(word);
+            ins.format = Format::kU;
+            ins.mnemonic = Mnemonic::kAuipc;
+            ins.imm = ImmU(word);
             break;
 
         case kOpJal:
-            ins.format = Format::J;
-            ins.mnemonic = Mnemonic::JAL;
-            ins.imm = imm_j(word);
+            ins.format = Format::kJ;
+            ins.mnemonic = Mnemonic::kJal;
+            ins.imm = ImmJ(word);
             break;
 
         case kOpJalr:
-            ins.format = Format::I;
-            ins.imm = imm_i(word);
-            if (ins.funct3 == 0b000) ins.mnemonic = Mnemonic::JALR;
+            ins.format = Format::kI;
+            ins.imm = ImmI(word);
+            if (ins.funct3 == 0b000) ins.mnemonic = Mnemonic::kJalr;
             break;
 
         case kOpBranch:
-            ins.format = Format::B;
-            ins.imm = imm_b(word);
+            ins.format = Format::kB;
+            ins.imm = ImmB(word);
             switch (ins.funct3) {
-                case 0b000: ins.mnemonic = Mnemonic::BEQ; break;
-                case 0b001: ins.mnemonic = Mnemonic::BNE; break;
-                case 0b100: ins.mnemonic = Mnemonic::BLT; break;
-                case 0b101: ins.mnemonic = Mnemonic::BGE; break;
-                case 0b110: ins.mnemonic = Mnemonic::BLTU; break;
-                case 0b111: ins.mnemonic = Mnemonic::BGEU; break;
+                case 0b000: ins.mnemonic = Mnemonic::kBeq; break;
+                case 0b001: ins.mnemonic = Mnemonic::kBne; break;
+                case 0b100: ins.mnemonic = Mnemonic::kBlt; break;
+                case 0b101: ins.mnemonic = Mnemonic::kBge; break;
+                case 0b110: ins.mnemonic = Mnemonic::kBltu; break;
+                case 0b111: ins.mnemonic = Mnemonic::kBgeu; break;
                 default: break;
             }
             break;
 
         case kOpLoad:
-            ins.format = Format::I;
-            ins.imm = imm_i(word);
+            ins.format = Format::kI;
+            ins.imm = ImmI(word);
             switch (ins.funct3) {
-                case 0b000: ins.mnemonic = Mnemonic::LB; break;
-                case 0b001: ins.mnemonic = Mnemonic::LH; break;
-                case 0b010: ins.mnemonic = Mnemonic::LW; break;
-                case 0b100: ins.mnemonic = Mnemonic::LBU; break;
-                case 0b101: ins.mnemonic = Mnemonic::LHU; break;
+                case 0b000: ins.mnemonic = Mnemonic::kLb; break;
+                case 0b001: ins.mnemonic = Mnemonic::kLh; break;
+                case 0b010: ins.mnemonic = Mnemonic::kLw; break;
+                case 0b100: ins.mnemonic = Mnemonic::kLbu; break;
+                case 0b101: ins.mnemonic = Mnemonic::kLhu; break;
                 default: break;
             }
             break;
 
         case kOpStore:
-            ins.format = Format::S;
-            ins.imm = imm_s(word);
+            ins.format = Format::kS;
+            ins.imm = ImmS(word);
             switch (ins.funct3) {
-                case 0b000: ins.mnemonic = Mnemonic::SB; break;
-                case 0b001: ins.mnemonic = Mnemonic::SH; break;
-                case 0b010: ins.mnemonic = Mnemonic::SW; break;
+                case 0b000: ins.mnemonic = Mnemonic::kSb; break;
+                case 0b001: ins.mnemonic = Mnemonic::kSh; break;
+                case 0b010: ins.mnemonic = Mnemonic::kSw; break;
                 default: break;
             }
             break;
 
         case kOpImm:
-            ins.format = Format::I;
-            ins.imm = imm_i(word);
+            ins.format = Format::kI;
+            ins.imm = ImmI(word);
             switch (ins.funct3) {
-                case 0b000: ins.mnemonic = Mnemonic::ADDI; break;
-                case 0b010: ins.mnemonic = Mnemonic::SLTI; break;
-                case 0b011: ins.mnemonic = Mnemonic::SLTIU; break;
-                case 0b100: ins.mnemonic = Mnemonic::XORI; break;
-                case 0b110: ins.mnemonic = Mnemonic::ORI; break;
-                case 0b111: ins.mnemonic = Mnemonic::ANDI; break;
+                case 0b000: ins.mnemonic = Mnemonic::kAddi; break;
+                case 0b010: ins.mnemonic = Mnemonic::kSlti; break;
+                case 0b011: ins.mnemonic = Mnemonic::kSltiu; break;
+                case 0b100: ins.mnemonic = Mnemonic::kXori; break;
+                case 0b110: ins.mnemonic = Mnemonic::kOri; break;
+                case 0b111: ins.mnemonic = Mnemonic::kAndi; break;
                 case 0b001:
-                    if (ins.funct7 == kFunct7Base) ins.mnemonic = Mnemonic::SLLI;
+                    if (ins.funct7 == kFunct7Base) ins.mnemonic = Mnemonic::kSlli;
                     break;
                 case 0b101:
-                    if (ins.funct7 == kFunct7Base) ins.mnemonic = Mnemonic::SRLI;
-                    else if (ins.funct7 == kFunct7Alt) ins.mnemonic = Mnemonic::SRAI;
+                    if (ins.funct7 == kFunct7Base) ins.mnemonic = Mnemonic::kSrli;
+                    else if (ins.funct7 == kFunct7Alt) ins.mnemonic = Mnemonic::kSrai;
                     break;
                 default: break;
             }
@@ -208,38 +208,38 @@ DecodedInstruction Decoder::decode(uint32_t word) {
             break;
 
         case kOpReg:
-            ins.format = Format::R;
+            ins.format = Format::kR;
             switch (ins.funct7) {
                 case kFunct7Base:
                     switch (ins.funct3) {
-                        case 0b000: ins.mnemonic = Mnemonic::ADD; break;
-                        case 0b001: ins.mnemonic = Mnemonic::SLL; break;
-                        case 0b010: ins.mnemonic = Mnemonic::SLT; break;
-                        case 0b011: ins.mnemonic = Mnemonic::SLTU; break;
-                        case 0b100: ins.mnemonic = Mnemonic::XOR; break;
-                        case 0b101: ins.mnemonic = Mnemonic::SRL; break;
-                        case 0b110: ins.mnemonic = Mnemonic::OR; break;
-                        case 0b111: ins.mnemonic = Mnemonic::AND; break;
+                        case 0b000: ins.mnemonic = Mnemonic::kAdd; break;
+                        case 0b001: ins.mnemonic = Mnemonic::kSll; break;
+                        case 0b010: ins.mnemonic = Mnemonic::kSlt; break;
+                        case 0b011: ins.mnemonic = Mnemonic::kSltu; break;
+                        case 0b100: ins.mnemonic = Mnemonic::kXor; break;
+                        case 0b101: ins.mnemonic = Mnemonic::kSrl; break;
+                        case 0b110: ins.mnemonic = Mnemonic::kOr; break;
+                        case 0b111: ins.mnemonic = Mnemonic::kAnd; break;
                         default: break;
                     }
                     break;
                 case kFunct7Alt:
                     switch (ins.funct3) {
-                        case 0b000: ins.mnemonic = Mnemonic::SUB; break;
-                        case 0b101: ins.mnemonic = Mnemonic::SRA; break;
+                        case 0b000: ins.mnemonic = Mnemonic::kSub; break;
+                        case 0b101: ins.mnemonic = Mnemonic::kSra; break;
                         default: break;
                     }
                     break;
                 case kFunct7Mul:
                     switch (ins.funct3) {
-                        case 0b000: ins.mnemonic = Mnemonic::MUL; break;
-                        case 0b001: ins.mnemonic = Mnemonic::MULH; break;
-                        case 0b010: ins.mnemonic = Mnemonic::MULHSU; break;
-                        case 0b011: ins.mnemonic = Mnemonic::MULHU; break;
-                        case 0b100: ins.mnemonic = Mnemonic::DIV; break;
-                        case 0b101: ins.mnemonic = Mnemonic::DIVU; break;
-                        case 0b110: ins.mnemonic = Mnemonic::REM; break;
-                        case 0b111: ins.mnemonic = Mnemonic::REMU; break;
+                        case 0b000: ins.mnemonic = Mnemonic::kMul; break;
+                        case 0b001: ins.mnemonic = Mnemonic::kMulh; break;
+                        case 0b010: ins.mnemonic = Mnemonic::kMulhsu; break;
+                        case 0b011: ins.mnemonic = Mnemonic::kMulhu; break;
+                        case 0b100: ins.mnemonic = Mnemonic::kDiv; break;
+                        case 0b101: ins.mnemonic = Mnemonic::kDivu; break;
+                        case 0b110: ins.mnemonic = Mnemonic::kRem; break;
+                        case 0b111: ins.mnemonic = Mnemonic::kRemu; break;
                         default: break;
                     }
                     break;
@@ -248,16 +248,16 @@ DecodedInstruction Decoder::decode(uint32_t word) {
             break;
 
         case kOpFence:
-            ins.format = Format::I;
-            if (ins.funct3 == 0b000) ins.mnemonic = Mnemonic::FENCE;
+            ins.format = Format::kI;
+            if (ins.funct3 == 0b000) ins.mnemonic = Mnemonic::kFence;
             break;
 
         case kOpSystem:
-            ins.format = Format::I;
+            ins.format = Format::kI;
             if (ins.funct3 == 0b000) {
-                const uint32_t imm12 = bits(word, 31, 20);
-                if (imm12 == 0) ins.mnemonic = Mnemonic::ECALL;
-                else if (imm12 == 1) ins.mnemonic = Mnemonic::EBREAK;
+                const uint32_t imm12 = Bits(word, 31, 20);
+                if (imm12 == 0) ins.mnemonic = Mnemonic::kEcall;
+                else if (imm12 == 1) ins.mnemonic = Mnemonic::kEbreak;
             }
             break;
 
