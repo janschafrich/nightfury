@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <string_view>
 
+#include "nf/mem/memory.hpp"
+
 namespace nf::isa {
 
 // RV32I/M instruction encodings. Order matches the six base formats;
@@ -12,10 +14,13 @@ enum class Format : uint8_t { kR, kI, kS, kB, kU, kJ, kInvalid };
 
 enum class Mnemonic : uint8_t {
     // RV32I
-    kLui, kAuipc, kJal, kJalr,
-    kBeq, kBne, kBlt, kBge, kBltu, kBgeu,
+    kLui, kAuipc, 
+    // Branch and Jump
+    kBeq, kBne, kBlt, kBge, kBltu, kBgeu, kJal, kJalr,
+    // Load Store
     kLb, kLh, kLw, kLbu, kLhu,
     kSb, kSh, kSw,
+    // Arithmetic and logical
     kAddi, kSlti, kSltiu, kXori, kOri, kAndi, kSlli, kSrli, kSrai,
     kAdd, kSub, kSll, kSlt, kSltu, kXor, kSrl, kSra, kOr, kAnd,
     // System
@@ -43,6 +48,10 @@ struct DecodedInstruction {
     uint8_t funct3 = 0;
     uint8_t funct7 = 0;
     int32_t imm = 0;
+
+    // Meaningful only for load/store mnemonics; resolved here from funct3
+    // so the MEM stage never has to re-interpret raw opcode bits.
+    mem::ElementSize mem_size = mem::ElementSize::kWord;
 
     bool Valid() const { return mnemonic != Mnemonic::kInvalid; }
 };

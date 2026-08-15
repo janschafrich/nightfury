@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <span>
 #include <stdexcept>
 #include <vector>
 
@@ -33,8 +34,8 @@ class MemoryInterface {
 public:
     virtual ~MemoryInterface() = default;
 
-    virtual uint32_t Read(ElementSize size, uint32_t addr) const = 0;
-    virtual void     Write(ElementSize size, uint32_t addr, uint32_t val) = 0;
+    virtual uint32_t Load(ElementSize size, uint32_t addr) const = 0;
+    virtual void     Store(ElementSize size, uint32_t addr, uint32_t val) = 0;
 };
 
 // Flat, zero-latency backing store for the functional interpreter
@@ -43,8 +44,14 @@ class Memory final : public MemoryInterface {
 public:
     Memory(uint32_t base_addr, size_t size_bytes);
 
-    uint32_t Read(ElementSize size, uint32_t addr) const override;
-    void     Write(ElementSize size, uint32_t addr, uint32_t val) override;
+    uint32_t Load(ElementSize size, uint32_t addr) const override;
+    void     Store(ElementSize size, uint32_t addr, uint32_t val) override;
+
+    // Host-side bulk write for program loading (ELF segments, HTIF setup).
+    // Unlike Store(), this is not a simulated CPU access -- it bypasses the
+    // element-width access protocol entirely, so it must stay off the
+    // MemoryInterface contract that a future timing/cache model intercepts.
+    void WriteBlob(uint32_t addr, std::span<const uint8_t> data);
 
 private:
     size_t Translate(uint32_t addr, ElementSize size) const;  // bounds-checked

@@ -3,6 +3,8 @@
 
 #include <cstdint>
 
+#include "nf/isa/decoder.hpp"
+
 namespace nf::core {
 
 enum class AluOp : uint8_t {
@@ -13,6 +15,9 @@ enum class AluOp : uint8_t {
 
 // Avoid any state, implement as function instead of class
 uint32_t Compute(AluOp op, uint32_t a, uint32_t b);
+
+AluOp ToAluOp(isa::Mnemonic m);
+
 
 }  // namespace nf::core
 

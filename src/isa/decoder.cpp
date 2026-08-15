@@ -163,11 +163,26 @@ DecodedInstruction Decoder::Decode(uint32_t word) {
             ins.format = Format::kI;
             ins.imm = ImmI(word);
             switch (ins.funct3) {
-                case 0b000: ins.mnemonic = Mnemonic::kLb; break;
-                case 0b001: ins.mnemonic = Mnemonic::kLh; break;
-                case 0b010: ins.mnemonic = Mnemonic::kLw; break;
-                case 0b100: ins.mnemonic = Mnemonic::kLbu; break;
-                case 0b101: ins.mnemonic = Mnemonic::kLhu; break;
+                case 0b000:
+                    ins.mnemonic = Mnemonic::kLb;
+                    ins.mem_size = mem::ElementSize::kByte;
+                    break;
+                case 0b001:
+                    ins.mnemonic = Mnemonic::kLh;
+                    ins.mem_size = mem::ElementSize::kHalfword;
+                    break;
+                case 0b010:
+                    ins.mnemonic = Mnemonic::kLw;
+                    ins.mem_size = mem::ElementSize::kWord;
+                    break;
+                case 0b100:
+                    ins.mnemonic = Mnemonic::kLbu;
+                    ins.mem_size = mem::ElementSize::kByte;
+                    break;
+                case 0b101:
+                    ins.mnemonic = Mnemonic::kLhu;
+                    ins.mem_size = mem::ElementSize::kHalfword;
+                    break;
                 default: break;
             }
             break;
@@ -176,9 +191,18 @@ DecodedInstruction Decoder::Decode(uint32_t word) {
             ins.format = Format::kS;
             ins.imm = ImmS(word);
             switch (ins.funct3) {
-                case 0b000: ins.mnemonic = Mnemonic::kSb; break;
-                case 0b001: ins.mnemonic = Mnemonic::kSh; break;
-                case 0b010: ins.mnemonic = Mnemonic::kSw; break;
+                case 0b000:
+                    ins.mnemonic = Mnemonic::kSb;
+                    ins.mem_size = mem::ElementSize::kByte;
+                    break;
+                case 0b001:
+                    ins.mnemonic = Mnemonic::kSh;
+                    ins.mem_size = mem::ElementSize::kHalfword;
+                    break;
+                case 0b010:
+                    ins.mnemonic = Mnemonic::kSw;
+                    ins.mem_size = mem::ElementSize::kWord;
+                    break;
                 default: break;
             }
             break;

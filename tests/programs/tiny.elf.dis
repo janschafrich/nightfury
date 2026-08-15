@@ -1,0 +1,10 @@
+
+tiny.elf:     file format elf32-littleriscv
+
+
+Disassembly of section .text:
+
+80000000 <_start>:
+80000000:	02a00513          	li	a0,42
+80000004:	05d00893          	li	a7,93
+80000008:	00000073          	ecall

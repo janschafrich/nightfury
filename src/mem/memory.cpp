@@ -1,5 +1,6 @@
 #include "nf/mem/memory.hpp"
 
+#include <algorithm>
 #include <sstream>
 
 namespace nf::mem {
@@ -44,7 +45,7 @@ size_t Memory::Translate(uint32_t addr, ElementSize size) const {
     return index;
 }
 
-uint32_t Memory::Read(ElementSize size, uint32_t addr) const {
+uint32_t Memory::Load(ElementSize size, uint32_t addr) const {
     const size_t index = Translate(addr, size);
     const uint32_t width = SizeBytes(size);
 
@@ -55,13 +56,26 @@ uint32_t Memory::Read(ElementSize size, uint32_t addr) const {
     return val;
 }
 
-void Memory::Write(ElementSize size, uint32_t addr, uint32_t val) {
+void Memory::Store(ElementSize size, uint32_t addr, uint32_t val) {
     const size_t index = Translate(addr, size);
     const uint32_t width = SizeBytes(size);
 
     for (uint32_t i = 0; i < width; ++i) {
         mem_[index + i] = static_cast<uint8_t>((val >> (8 * i)) & 0xFF);
     }
+}
+
+void Memory::WriteBlob(uint32_t addr, std::span<const uint8_t> data) {
+    // Used to initialize the memory before simulating the CPU's execution
+    // Never called as a result of a decoded instruction.
+    if (addr < base_) {
+        throw AccessFault(addr, ElementSize::kByte);
+    }
+    const size_t index = static_cast<size_t>(addr) - base_;
+    if (index + data.size() > mem_.size()) {
+        throw AccessFault(addr, ElementSize::kByte);
+    }
+    std::copy(data.begin(), data.end(), mem_.begin() + static_cast<std::ptrdiff_t>(index));
 }
 
 }  // namespace nf::mem

@@ -11,36 +11,36 @@ namespace {
     constexpr size_t kResetVector = 0x80000000u;
 }
 
-TEST_CASE("Read bytes that were written", "[mem]") {
+TEST_CASE("Load bytes that were written", "[mem]") {
     Memory memory(kResetVector, 0x100);
     for (uint8_t i = 0; i < 4; i++ ) {
         uint32_t addr = kResetVector + i;
 
-        memory.Write(ElementSize::kByte, addr, i*2);
+        memory.Store(ElementSize::kByte, addr, i*2);
         CAPTURE(i);
-        CHECK (memory.Read(ElementSize::kByte, addr) == i*2);
+        CHECK (memory.Load(ElementSize::kByte, addr) == i*2);
     }
 }
 
-TEST_CASE("Read halfwords that were written", "[mem]") {
+TEST_CASE("Load halfwords that were written", "[mem]") {
     Memory memory(kResetVector, 0x1000);
     for (uint8_t i = 0; i < 4; i = i + 2) {
         uint32_t addr = kResetVector + i;
 
-        memory.Write(ElementSize::kHalfword, addr, i*2);
+        memory.Store(ElementSize::kHalfword, addr, i*2);
         CAPTURE(i);
-        CHECK (memory.Read(ElementSize::kHalfword, addr) == i*2);
+        CHECK (memory.Load(ElementSize::kHalfword, addr) == i*2);
     }
 }
 
-TEST_CASE("Read words that were written", "[mem]") {
+TEST_CASE("Load words that were written", "[mem]") {
     Memory memory(kResetVector, 0x1000);
     for (uint8_t i = 100; i < 4; i = i + 4) {
         uint32_t addr = kResetVector + i;
 
-        memory.Write(ElementSize::kWord, addr, i*2);
+        memory.Store(ElementSize::kWord, addr, i*2);
         CAPTURE(i);
-        CHECK (memory.Read(ElementSize::kWord, addr) == i*2);
+        CHECK (memory.Load(ElementSize::kWord, addr) == i*2);
     }
 }
 
@@ -62,7 +62,7 @@ private:
 TEST_CASE("Access fault reports the offending address and width", "[mem]") {
     Memory memory(kResetVector, 0x100);
 
-    REQUIRE_THROWS_MATCHES(memory.Read(ElementSize::kHalfword, 0),
+    REQUIRE_THROWS_MATCHES(memory.Load(ElementSize::kHalfword, 0),
                            AccessFault,
                            AccessFaultMatcher(0, ElementSize::kHalfword));
 }

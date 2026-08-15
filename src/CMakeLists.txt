@@ -5,6 +5,7 @@ add_library(nf_core STATIC
     core/alu.cpp
     pipeline/pipeline.cpp
     mem/memory.cpp
+    loader/elf_loader.cpp
     sim/simulator.cpp
 )
 

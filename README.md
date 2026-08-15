@@ -53,7 +53,7 @@ cmake --build build/debug --target nf_unit_tests
 
 # Run tests
 ./build/debug/bin/nf_unit_tests
-# or
+# or more verbose
 ctest --test-dir build/debug --output-on-failure
 ```
 
