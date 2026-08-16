@@ -93,6 +93,9 @@ ProgramHeader ParseProgramHeader(std::span<const uint8_t> bytes, size_t off) {
 }  // namespace
 
 ElfImage LoadElf(std::span<const uint8_t> bytes, mem::Memory &memory) {
+    // Discards elf header and program header and writes .text and .data to memory
+    // The .bss is not explicitly initialized to zero here, since this is done by
+    // construction, when instantiating the memory.
     const ElfHeader hdr = ParseElf32Header(bytes);
 
     for (uint16_t i = 0; i < hdr.phnum; ++i) {
@@ -115,6 +118,8 @@ ElfImage LoadElf(std::span<const uint8_t> bytes, mem::Memory &memory) {
         // invariant of a freshly constructed Memory, not of WriteBlob --
         // reloading a second image into the same Memory would need an
         // explicit zero-fill first.
+        // Only read to filesz (and not memsz), as zeros of the .bss segment
+        // are not included in the binary to save disk space.
         memory.WriteBlob(ph.vaddr, bytes.subspan(ph.offset, ph.filesz));
     }
 

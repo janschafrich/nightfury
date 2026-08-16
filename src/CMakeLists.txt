@@ -2,6 +2,7 @@ add_library(nf_core STATIC
     isa/decoder.cpp
     core/interpreter.cpp
     core/register_file.cpp
+    core/csr_file.cpp
     core/alu.cpp
     pipeline/pipeline.cpp
     mem/memory.cpp

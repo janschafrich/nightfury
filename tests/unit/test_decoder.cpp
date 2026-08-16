@@ -153,6 +153,46 @@ TEST_CASE("Decoder decodes ECALL/EBREAK from the SYSTEM opcode", "[decoder]") {
     CHECK(ebreak.mnemonic == Mnemonic::kEbreak);
 }
 
+TEST_CASE("Decoder decodes MRET from the SYSTEM opcode", "[decoder]") {
+    // mret: funct7=0b0011000, rs2=0b00010 -> imm[11:0] = 0x302.
+    auto ins = Decoder::Decode(encode_i(0x302, 0, 0b000, 0, 0b1110011));
+    CHECK(ins.mnemonic == Mnemonic::kMret);
+}
+
+TEST_CASE("Decoder decodes CSR register-source ops with an unsigned csr address", "[decoder]") {
+    // csrrw x1, mhartid, x2 -- mhartid=0xF14 has bit 11 set; ImmI would
+    // sign-extend that and corrupt the address, so this specifically
+    // exercises that ImmCsr doesn't.
+    auto ins = Decoder::Decode(encode_i(0xF14, 2, 0b001, 1, 0b1110011));
+    CHECK(ins.format == Format::kI);
+    CHECK(ins.mnemonic == Mnemonic::kCsrrw);
+    CHECK(ins.imm == 0xF14);
+    CHECK(ins.rs1 == 2);
+    CHECK(ins.rd == 1);
+
+    ins = Decoder::Decode(encode_i(0x342, 5, 0b010, 3, 0b1110011));  // csrrs x3, mcause, x5
+    CHECK(ins.mnemonic == Mnemonic::kCsrrs);
+
+    ins = Decoder::Decode(encode_i(0x305, 6, 0b011, 4, 0b1110011));  // csrrc x4, mtvec, x6
+    CHECK(ins.mnemonic == Mnemonic::kCsrrc);
+}
+
+TEST_CASE("Decoder decodes CSR immediate-source ops, rs1 field holds the uimm", "[decoder]") {
+    // csrrwi x1, mstatus, 5 -- the "5" lives in the rs1 bit position but is
+    // a zero-extended immediate, not a register number.
+    auto ins = Decoder::Decode(encode_i(0x300, 5, 0b101, 1, 0b1110011));
+    CHECK(ins.mnemonic == Mnemonic::kCsrrwi);
+    CHECK(ins.imm == 0x300);
+    CHECK(ins.rs1 == 5);
+
+    ins = Decoder::Decode(encode_i(0x300, 0, 0b110, 0, 0b1110011));  // csrrsi x0, mstatus, 0
+    CHECK(ins.mnemonic == Mnemonic::kCsrrsi);
+
+    ins = Decoder::Decode(encode_i(0x300, 31, 0b111, 2, 0b1110011));  // csrrci x2, mstatus, 31
+    CHECK(ins.mnemonic == Mnemonic::kCsrrci);
+    CHECK(ins.rs1 == 31);
+}
+
 TEST_CASE("Decoder marks unrecognized encodings invalid", "[decoder]") {
     // opcode 0b1111111 isn't a valid RV32IM major opcode.
     auto ins = Decoder::Decode(0b1111111);

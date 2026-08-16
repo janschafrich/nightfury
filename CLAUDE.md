@@ -46,8 +46,8 @@ Requirements:
 For a detailed description refer to the README.md
 
 Next steps towards Milestone 1:
-- Interpreter's missing a stop-condition (ecall/HTIF), 
-- and wiring Simulator to call LoadElfFile → construct Interpreter → loop.
+- see TODO In ProcessInstruction 
+- add Simulator::Run() 
 
 
 

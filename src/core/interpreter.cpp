@@ -12,7 +12,7 @@ using nf::mem::ElementSize;
 Interpreter::Interpreter(mem::MemoryInterface &memory, uint32_t reset_pc)
      : memory_(memory), pc_(reset_pc) {}
 
-void Interpreter::ProcessInstruction() {
+StepResult Interpreter::ProcessInstruction() {
     // Inputs: instruction, register file and a memory
     // Output: architectural effect
     // No timing! (single stage / combinatorial)
@@ -96,7 +96,54 @@ void Interpreter::ProcessInstruction() {
             break;
         }
 
-        case Mnemonic::kFence: case Mnemonic::kEcall: case Mnemonic::kEbreak:
+        case Mnemonic::kCsrrw: case Mnemonic::kCsrrs: case Mnemonic::kCsrrc:
+        case Mnemonic::kCsrrwi: case Mnemonic::kCsrrsi: case Mnemonic::kCsrrci: {
+            const uint16_t csr_addr = static_cast<uint16_t>(inst_.imm);
+            const uint32_t old = csrs_.Read(csr_addr);
+
+            // *i variants take a 5-bit zero-extended immediate straight off
+            // the rs1 field -- it's not a register number for these (see
+            // decoder.cpp); register variants use rs1_val like any other op.
+            const bool is_immediate_form =
+                inst_.mnemonic == Mnemonic::kCsrrwi ||
+                inst_.mnemonic == Mnemonic::kCsrrsi ||
+                inst_.mnemonic == Mnemonic::kCsrrci;
+            const uint32_t operand = is_immediate_form ? inst_.rs1 : rs1_val;
+
+            uint32_t new_val = old;
+            switch (inst_.mnemonic) {
+                case Mnemonic::kCsrrw: case Mnemonic::kCsrrwi: new_val = operand; break;
+                case Mnemonic::kCsrrs: case Mnemonic::kCsrrsi: new_val = old | operand; break;
+                case Mnemonic::kCsrrc: case Mnemonic::kCsrrci: new_val = old & ~operand; break;
+                default: break;
+            }
+            // Spec technically skips the write for csrrs/csrrc(i) when the
+            // operand is zero (e.g. `csrr t5, mcause` expands to
+            // `csrrs t5, mcause, x0`). Skipped here: old | 0 == old and
+            // old & ~0 == old, so writing unconditionally is observationally
+            // identical for any CSR without read side effects -- and
+            // CsrFile has none (see csr_file.hpp).
+            csrs_.Write(csr_addr, new_val);
+            regfile_.Write(inst_.rd, old);
+            break;
+        }
+
+        case Mnemonic::kEcall:
+            // riscv-tests' env/p never leaves M-mode (RVTEST_RV32U/RV32UM's
+            // `init` macro is empty), so this interpreter -- modeling a
+            // single always-M-mode hart -- always traps with the M-mode
+            // ecall cause. trap_vector (env/p/riscv_test.h) dispatches on
+            // mcause to reach write_tohost.
+            csrs_.set_mepc(pc_);
+            csrs_.set_mcause(kCauseMachineEcall);
+            pc_next = csrs_.mtvec();
+            break;
+
+        case Mnemonic::kMret:
+            pc_next = csrs_.mepc();
+            break;
+
+        case Mnemonic::kFence: case Mnemonic::kEbreak:
             break;  // no architectural effect modeled yet
 
         case Mnemonic::kInvalid:
@@ -104,8 +151,14 @@ void Interpreter::ProcessInstruction() {
             break;
     }
 
+    // TODO: detect the write_tohost store (env/p/riscv_test.h) and return
+    // StepResult::kHalted -- needs the interpreter to know the tohost
+    // address, which the loader doesn't surface yet (it only reads program
+    // headers, not the symbol table). Design this once LoadElf grows symbol
+    // lookup.
     pc_ = pc_next;
 
+    return StepResult::kOk;
 }
 
 }  // namespace nf::core

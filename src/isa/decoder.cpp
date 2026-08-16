@@ -52,6 +52,11 @@ int32_t ImmJ(uint32_t w) {
     return SignExtend(v, 21);
 }
 
+// CSR address, word[31:20]. Unlike ImmI this is *not* sign-extended -- it's
+// an unsigned 12-bit index, not a value, and CSR addresses like mhartid
+// (0xF14) have bit 11 set, which ImmI's sign extension would corrupt.
+int32_t ImmCsr(uint32_t w) { return static_cast<int32_t>(Bits(w, 31, 20)); }
+
 }  // namespace
 
 std::string_view ToString(Mnemonic m) {
@@ -96,6 +101,13 @@ std::string_view ToString(Mnemonic m) {
         case Mnemonic::kFence: return "fence";
         case Mnemonic::kEcall: return "ecall";
         case Mnemonic::kEbreak: return "ebreak";
+        case Mnemonic::kMret: return "mret";
+        case Mnemonic::kCsrrw: return "csrrw";
+        case Mnemonic::kCsrrs: return "csrrs";
+        case Mnemonic::kCsrrc: return "csrrc";
+        case Mnemonic::kCsrrwi: return "csrrwi";
+        case Mnemonic::kCsrrsi: return "csrrsi";
+        case Mnemonic::kCsrrci: return "csrrci";
         case Mnemonic::kMul: return "mul";
         case Mnemonic::kMulh: return "mulh";
         case Mnemonic::kMulhsu: return "mulhsu";
@@ -276,12 +288,28 @@ DecodedInstruction Decoder::Decode(uint32_t word) {
             if (ins.funct3 == 0b000) ins.mnemonic = Mnemonic::kFence;
             break;
 
+        // CSR instructions reuse the I-type field layout (rd, funct3, rs1,
+        // imm[11:0]) even though the semantics differ: imm is an unsigned
+        // CSR address rather than a sign-extended value, and for the *i
+        // variants rs1 holds a 5-bit zero-extended immediate rather than a
+        // register number (the interpreter reads it directly off ins.rs1).
         case kOpSystem:
             ins.format = Format::kI;
-            if (ins.funct3 == 0b000) {
-                const uint32_t imm12 = Bits(word, 31, 20);
-                if (imm12 == 0) ins.mnemonic = Mnemonic::kEcall;
-                else if (imm12 == 1) ins.mnemonic = Mnemonic::kEbreak;
+            switch (ins.funct3) {
+                case 0b000: {
+                    const uint32_t imm12 = Bits(word, 31, 20);
+                    if (imm12 == 0x000) ins.mnemonic = Mnemonic::kEcall;
+                    else if (imm12 == 0x001) ins.mnemonic = Mnemonic::kEbreak;
+                    else if (imm12 == 0x302) ins.mnemonic = Mnemonic::kMret;
+                    break;
+                }
+                case 0b001: ins.mnemonic = Mnemonic::kCsrrw;  ins.imm = ImmCsr(word); break;
+                case 0b010: ins.mnemonic = Mnemonic::kCsrrs;  ins.imm = ImmCsr(word); break;
+                case 0b011: ins.mnemonic = Mnemonic::kCsrrc;  ins.imm = ImmCsr(word); break;
+                case 0b101: ins.mnemonic = Mnemonic::kCsrrwi; ins.imm = ImmCsr(word); break;
+                case 0b110: ins.mnemonic = Mnemonic::kCsrrsi; ins.imm = ImmCsr(word); break;
+                case 0b111: ins.mnemonic = Mnemonic::kCsrrci; ins.imm = ImmCsr(word); break;
+                default: break;
             }
             break;
 

@@ -57,5 +57,8 @@ cmake --build build/debug --target nf_unit_tests
 ctest --test-dir build/debug --output-on-failure
 ```
 
+# Project Structure
 
+src/core 	mutable architectural state
+src/isa		stateless decode logic
 

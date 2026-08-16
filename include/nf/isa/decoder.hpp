@@ -24,7 +24,9 @@ enum class Mnemonic : uint8_t {
     kAddi, kSlti, kSltiu, kXori, kOri, kAndi, kSlli, kSrli, kSrai,
     kAdd, kSub, kSll, kSlt, kSltu, kXor, kSrl, kSra, kOr, kAnd,
     // System
-    kFence, kEcall, kEbreak,
+    kFence, kEcall, kEbreak, kMret,
+    // Zicsr (minimal subset -- just enough to boot riscv-tests' env/p)
+    kCsrrw, kCsrrs, kCsrrc, kCsrrwi, kCsrrsi, kCsrrci,
     // RV32M
     kMul, kMulh, kMulhsu, kMulhu, kDiv, kDivu, kRem, kRemu,
 
