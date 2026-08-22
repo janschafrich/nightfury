@@ -5,6 +5,8 @@
 
 namespace nf::core {
 
+constexpr uint32_t kTohost = 0x80001000u;
+
 using nf::isa::Mnemonic;
 using nf::core::AluOp;
 using nf::mem::ElementSize;
@@ -93,6 +95,11 @@ StepResult Interpreter::ProcessInstruction() {
         case Mnemonic::kSb: case Mnemonic::kSh: case Mnemonic::kSw: {
             const uint32_t addr = rs1_val + static_cast<uint32_t>(inst_.imm);
             memory_.Store(inst_.mem_size, addr, rs2_val);
+            // detect store to riscv_tests symbol
+            if (addr == kTohost) {
+                pc_ = pc_next;
+                return StepResult::kHalted;
+            }
             break;
         }
 
@@ -156,6 +163,7 @@ StepResult Interpreter::ProcessInstruction() {
     // address, which the loader doesn't surface yet (it only reads program
     // headers, not the symbol table). Design this once LoadElf grows symbol
     // lookup.
+    
     pc_ = pc_next;
 
     return StepResult::kOk;

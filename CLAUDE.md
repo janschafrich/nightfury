@@ -28,8 +28,8 @@ Requirements:
 - branch prediction: disabled, maybe later
 - memory hierarchy: just memory for now, caches maybe later
 - C++ simulator core writes trace file, Python reads trace file and analyzes it
-- Using modern C++20 features and following Googles style guidelines
-- my OS: PopOS 22.04, based upon Ubuntu
+- Using modern C++23 features and following Googles style guidelines
+- my OS: PopOS 24.04, based upon Ubuntu
 
 # Milestones
 

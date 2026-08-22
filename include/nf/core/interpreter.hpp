@@ -24,7 +24,6 @@ private:
     CsrFile csrs_;              // Minimal M-mode CSR state (see csr_file.hpp)
     mem::MemoryInterface &memory_;    // Share between functional core and pipeline
 
-
     uint32_t pc_;               // Current PC for branch target calculation
     isa::DecodedInstruction inst_;   // Current instruction
 };

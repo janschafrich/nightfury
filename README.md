@@ -12,10 +12,10 @@ Requirements:
 - pipelined (IF/ID/EX/MEM/WB), in order, scalar, 
 - branch prediction: disabled, maybe later
 - memory hierarchy: just memory for now, caches maybe later
-- language: C++20 combined with Python
+- language: C++23 combined with Python
 - C++ simulator core writes trace file
 - Python reads trace file and analyzes it
-- my OS: PopOS 22.04, based upon Ubuntu
+- my OS: PopOS 24.04, based upon Ubuntu
 - Time per week: 4 to 5 hours. 
 
 # Milestones
