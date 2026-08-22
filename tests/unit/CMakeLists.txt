@@ -7,7 +7,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(Catch2)
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
 
-add_executable(nf_unit_tests
+add_executable(nf-unit-tests
     test_decoder.cpp
     test_register_file.cpp
     test_alu.cpp
@@ -15,7 +15,7 @@ add_executable(nf_unit_tests
     test_elf_loader.cpp
     test_interpreter.cpp
 )
-target_link_libraries(nf_unit_tests PRIVATE nf_core Catch2::Catch2WithMain)
+target_link_libraries(nf-unit-tests PRIVATE nf-core Catch2::Catch2WithMain)
 
 include(Catch)
-catch_discover_tests(nf_unit_tests)
+catch_discover_tests(nf-unit-tests)

@@ -38,10 +38,10 @@ Requirements:
 
 ```Sh
 # Functional (no timing)
-cmake --build build/debug --target nf-functional 
+cmake --build build --target nf-functional 
 
 # Pipeline (with timing)
-cmake --build build/debug --target nf-pipeline 
+cmake --build build --target nf-pipeline 
 
 ```
 
@@ -49,12 +49,12 @@ cmake --build build/debug --target nf-pipeline
 
 ```Sh
 # Build
-cmake --build build/debug --target nf_unit_tests
+cmake --build build --target nf-unit-tests
 
 # Run tests
-./build/debug/bin/nf_unit_tests
+./build/bin/nf-unit-tests
 # or more verbose
-ctest --test-dir build/debug --output-on-failure
+ctest --test-dir build --output-on-failure
 ```
 
 # Project Structure

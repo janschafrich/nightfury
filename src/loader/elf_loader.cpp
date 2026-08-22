@@ -46,32 +46,32 @@ struct ProgramHeader {
     uint32_t memsz;
 };
 
-ElfHeader ParseElf32Header(std::span<const uint8_t> bytes) {
+std::expected<ElfHeader, ElfFormatError> ParseElf32Header(std::span<const uint8_t> bytes) {
     if (bytes.size() < kEhdrSize) {
-        throw ElfFormatError("file too small to contain an ELF header");
+        return std::unexpected(ElfFormatError{"file too small to contain an ELF header"});
     }
     if (bytes[0] != 0x7F || bytes[1] != 'E' || bytes[2] != 'L' || bytes[3] != 'F') {
-        throw ElfFormatError("missing 0x7F 'E' 'L' 'F' magic");
+        return std::unexpected(ElfFormatError{"missing 0x7F 'E' 'L' 'F' magic"});
     }
     if (bytes[4] != kElfClass32) {
-        throw ElfFormatError("not a 32-bit ELF (EI_CLASS != ELFCLASS32)");
+        return std::unexpected(ElfFormatError{"not a 32-bit ELF (EI_CLASS != ELFCLASS32)"});
     }
     if (bytes[5] != kElfData2Lsb) {
-        throw ElfFormatError("not little-endian (EI_DATA != ELFDATA2LSB)");
+        return std::unexpected(ElfFormatError{"not little-endian (EI_DATA != ELFDATA2LSB)"});
     }
     if (ReadU16(bytes, 16) != kEtExec) {
-        throw ElfFormatError("not a static executable (e_type != ET_EXEC)");
+        return std::unexpected(ElfFormatError{"not a static executable (e_type != ET_EXEC)"});
     }
     if (ReadU16(bytes, 18) != kEmRiscv) {
-        throw ElfFormatError("e_machine != EM_RISCV");
+        return std::unexpected(ElfFormatError{"e_machine != EM_RISCV"});
     }
 
-    ElfHeader hdr;
-    hdr.entry = ReadU32(bytes, 24);
-    hdr.phoff = ReadU32(bytes, 28);
-    hdr.phentsize = ReadU16(bytes, 42);
-    hdr.phnum = ReadU16(bytes, 44);
-    return hdr;
+    return ElfHeader{
+        .entry = ReadU32(bytes, 24),
+        .phoff = ReadU32(bytes, 28),
+        .phentsize = ReadU16(bytes, 42),
+        .phnum = ReadU16(bytes, 44),
+    };
 }
 
 // Elf32_Phdr field order is p_type, p_offset, p_vaddr, p_paddr, p_filesz,
@@ -92,16 +92,20 @@ ProgramHeader ParseProgramHeader(std::span<const uint8_t> bytes, size_t off) {
 
 }  // namespace
 
-ElfImage LoadElf(std::span<const uint8_t> bytes, mem::Memory &memory) {
+std::expected<ElfImage, ElfFormatError> LoadElf(std::span<const uint8_t> bytes,
+                                                 mem::Memory &memory) {
     // Discards elf header and program header and writes .text and .data to memory
     // The .bss is not explicitly initialized to zero here, since this is done by
     // construction, when instantiating the memory.
-    const ElfHeader hdr = ParseElf32Header(bytes);
+    const auto hdr = ParseElf32Header(bytes);
+    if (!hdr) {
+        return std::unexpected(hdr.error());
+    }
 
-    for (uint16_t i = 0; i < hdr.phnum; ++i) {
-        const size_t off = hdr.phoff + static_cast<size_t>(i) * hdr.phentsize;
+    for (uint16_t i = 0; i < hdr->phnum; ++i) {
+        const size_t off = hdr->phoff + static_cast<size_t>(i) * hdr->phentsize;
         if (off + kPhdrSize > bytes.size()) {
-            throw ElfFormatError("program header table runs past end of file");
+            return std::unexpected(ElfFormatError{"program header table runs past end of file"});
         }
 
         const ProgramHeader ph = ParseProgramHeader(bytes, off);
@@ -109,7 +113,7 @@ ElfImage LoadElf(std::span<const uint8_t> bytes, mem::Memory &memory) {
             continue;
         }
         if (ph.offset + ph.filesz > bytes.size()) {
-            throw ElfFormatError("PT_LOAD segment runs past end of file");
+            return std::unexpected(ElfFormatError{"PT_LOAD segment runs past end of file"});
         }
 
         // memsz > filesz is .bss. Memory's backing store is zero-initialized
@@ -123,13 +127,14 @@ ElfImage LoadElf(std::span<const uint8_t> bytes, mem::Memory &memory) {
         memory.WriteBlob(ph.vaddr, bytes.subspan(ph.offset, ph.filesz));
     }
 
-    return ElfImage{hdr.entry};
+    return ElfImage{hdr->entry};
 }
 
-ElfImage LoadElfFile(const std::string &path, mem::Memory &memory) {
+std::expected<ElfImage, ElfFormatError> LoadElfFile(const std::string &path,
+                                                     mem::Memory &memory) {
     std::ifstream file(path, std::ios::binary | std::ios::ate);
     if (!file) {
-        throw ElfFormatError("cannot open file: " + path);
+        return std::unexpected(ElfFormatError{"cannot open file: " + path});
     }
 
     const std::streamsize size = file.tellg();
@@ -137,7 +142,7 @@ ElfImage LoadElfFile(const std::string &path, mem::Memory &memory) {
 
     std::vector<uint8_t> bytes(static_cast<size_t>(size));
     if (!file.read(reinterpret_cast<char *>(bytes.data()), size)) {
-        throw ElfFormatError("failed to read file: " + path);
+        return std::unexpected(ElfFormatError{"failed to read file: " + path});
     }
 
     return LoadElf(bytes, memory);

@@ -67,7 +67,8 @@ TEST_CASE("LoadElf copies PT_LOAD contents to the right address and reports entr
     Memory memory(kBase, 0x1000);
     const auto image = LoadElf(bytes, memory);
 
-    CHECK(image.entry_pc == kBase + 4);
+    REQUIRE(image.has_value());
+    CHECK(image->entry_pc == kBase + 4);
     CHECK(memory.Load(ElementSize::kWord, kBase) == 0x00000013u);
 }
 
@@ -77,7 +78,7 @@ TEST_CASE("LoadElf zero-fills bss beyond filesz", "[loader]") {
     PutU32(bytes, kEhdrSize + 20, 8);  // p_memsz = 8, p_filesz stays 4
 
     Memory memory(kBase, 0x1000);
-    LoadElf(bytes, memory);
+    REQUIRE(LoadElf(bytes, memory).has_value());
 
     CHECK(memory.Load(ElementSize::kWord, kBase) == 0xDEADBEEFu);
     CHECK(memory.Load(ElementSize::kWord, kBase + 4) == 0u);
@@ -88,7 +89,7 @@ TEST_CASE("LoadElf rejects bad magic", "[loader]") {
     bytes[0] = 0x00;
 
     Memory memory(0x80000000u, 0x1000);
-    CHECK_THROWS_AS(LoadElf(bytes, memory), ElfFormatError);
+    CHECK_FALSE(LoadElf(bytes, memory).has_value());
 }
 
 TEST_CASE("LoadElf rejects non-RISC-V machine", "[loader]") {
@@ -96,7 +97,7 @@ TEST_CASE("LoadElf rejects non-RISC-V machine", "[loader]") {
     PutU16(bytes, 18, 0x3E);  // EM_X86_64
 
     Memory memory(0x80000000u, 0x1000);
-    CHECK_THROWS_AS(LoadElf(bytes, memory), ElfFormatError);
+    CHECK_FALSE(LoadElf(bytes, memory).has_value());
 }
 
 TEST_CASE("LoadElf rejects a PT_LOAD segment outside the mapped Memory range", "[loader]") {

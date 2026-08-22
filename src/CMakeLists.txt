@@ -1,4 +1,4 @@
-add_library(nf_core STATIC
+add_library(nf-core STATIC
     isa/decoder.cpp
     core/interpreter.cpp
     core/register_file.cpp
@@ -10,6 +10,6 @@ add_library(nf_core STATIC
     sim/simulator.cpp
 )
 
-target_include_directories(nf_core PUBLIC
+target_include_directories(nf-core PUBLIC
     ${CMAKE_SOURCE_DIR}/include
 )

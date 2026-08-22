@@ -1,4 +1,5 @@
 #include <cassert>
+#include <utility>
 
 #include "nf/core/interpreter.hpp"
 #include "nf/core/alu.hpp"
@@ -122,7 +123,14 @@ StepResult Interpreter::ProcessInstruction() {
                 case Mnemonic::kCsrrw: case Mnemonic::kCsrrwi: new_val = operand; break;
                 case Mnemonic::kCsrrs: case Mnemonic::kCsrrsi: new_val = old | operand; break;
                 case Mnemonic::kCsrrc: case Mnemonic::kCsrrci: new_val = old & ~operand; break;
-                default: break;
+                // The outer switch only reaches this block for the six CSR
+                // mnemonics above, so this default is truly unreachable --
+                // asserting that lets the compiler drop the bounds check it
+                // would otherwise need for a non-exhaustive jump table, and
+                // makes a future mismatch (e.g. a mnemonic added to one
+                // switch but not the other) a loud UBSan failure instead of
+                // a silently-stale new_val.
+                default: std::unreachable();
             }
             // Spec technically skips the write for csrrs/csrrc(i) when the
             // operand is zero (e.g. `csrr t5, mcause` expands to
