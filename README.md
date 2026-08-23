@@ -16,7 +16,6 @@ Requirements:
 - C++ simulator core writes trace file
 - Python reads trace file and analyzes it
 - my OS: PopOS 24.04, based upon Ubuntu
-- Time per week: 4 to 5 hours. 
 
 # Milestones
 

@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <expected>
+#include <optional>
 #include <span>
 #include <string>
 
@@ -26,6 +27,12 @@ struct ElfFormatError {
 
 struct ElfImage {
     uint32_t entry_pc;  // e_entry -- where the interpreter's pc_ should start
+
+    // st_value of the "tohost" symbol, resolved from .symtab/.strtab if the
+    // image has them. nullopt for a binary with no such symbol (e.g. one not
+    // built against riscv-tests' env/p harness) -- the caller decides
+    // whether that's fatal, LoadElf doesn't assume every image is a test.
+    std::optional<uint32_t> tohost_addr;
 };
 
 // Parses `bytes` as an ELF32/RISC-V/ET_EXEC image and writes every

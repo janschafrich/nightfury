@@ -14,6 +14,7 @@ add_executable(nf-unit-tests
     test_memory.cpp
     test_elf_loader.cpp
     test_interpreter.cpp
+    test_simulator.cpp
 )
 target_link_libraries(nf-unit-tests PRIVATE nf-core Catch2::Catch2WithMain)
 

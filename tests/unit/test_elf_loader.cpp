@@ -1,5 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <cstdint>
+#include <string>
+#include <utility>
 #include <vector>
 
 #include "nf/loader/elf_loader.hpp"
@@ -57,6 +59,54 @@ std::vector<uint8_t> BuildMinimalElf(uint32_t entry, uint32_t vaddr,
     return b;
 }
 
+// Appends a null section (index 0), an SHT_SYMTAB section (index 1) and its
+// SHT_STRTAB (index 2) holding `symbols`, then points e_shoff/e_shentsize/
+// e_shnum at them -- everything a real linker's section header table would
+// carry except the fields LoadElf's symbol lookup doesn't read.
+void AppendSymbolTable(std::vector<uint8_t> &b,
+                        const std::vector<std::pair<std::string, uint32_t>> &symbols) {
+    constexpr size_t kShdrSize = 40;
+    constexpr size_t kSymSize = 16;
+
+    std::vector<uint8_t> strtab = {0};  // index 0 is the reserved empty name
+    std::vector<size_t> name_off;
+    for (const auto &[name, value] : symbols) {
+        name_off.push_back(strtab.size());
+        strtab.insert(strtab.end(), name.begin(), name.end());
+        strtab.push_back(0);
+    }
+
+    std::vector<uint8_t> symtab(kSymSize, 0);  // index 0 is the reserved null symbol
+    for (size_t i = 0; i < symbols.size(); ++i) {
+        std::vector<uint8_t> entry(kSymSize, 0);
+        PutU32(entry, 0, static_cast<uint32_t>(name_off[i]));  // st_name
+        PutU32(entry, 4, symbols[i].second);                   // st_value
+        symtab.insert(symtab.end(), entry.begin(), entry.end());
+    }
+
+    const size_t symtab_off = b.size();
+    b.insert(b.end(), symtab.begin(), symtab.end());
+    const size_t strtab_off = b.size();
+    b.insert(b.end(), strtab.begin(), strtab.end());
+
+    const size_t shoff = b.size();
+    b.resize(shoff + 3 * kShdrSize, 0);
+
+    PutU32(b, shoff + kShdrSize + 4, 2);                                       // [1].sh_type = SHT_SYMTAB
+    PutU32(b, shoff + kShdrSize + 16, static_cast<uint32_t>(symtab_off));      // [1].sh_offset
+    PutU32(b, shoff + kShdrSize + 20, static_cast<uint32_t>(symtab.size()));   // [1].sh_size
+    PutU32(b, shoff + kShdrSize + 24, 2);                                      // [1].sh_link -> section 2
+    PutU32(b, shoff + kShdrSize + 36, static_cast<uint32_t>(kSymSize));        // [1].sh_entsize
+
+    PutU32(b, shoff + 2 * kShdrSize + 4, 3);                                      // [2].sh_type = SHT_STRTAB
+    PutU32(b, shoff + 2 * kShdrSize + 16, static_cast<uint32_t>(strtab_off));     // [2].sh_offset
+    PutU32(b, shoff + 2 * kShdrSize + 20, static_cast<uint32_t>(strtab.size()));  // [2].sh_size
+
+    PutU32(b, 32, static_cast<uint32_t>(shoff));      // e_shoff
+    PutU16(b, 46, static_cast<uint16_t>(kShdrSize));  // e_shentsize
+    PutU16(b, 48, 3);                                 // e_shnum
+}
+
 }  // namespace
 
 TEST_CASE("LoadElf copies PT_LOAD contents to the right address and reports entry", "[loader]") {
@@ -106,4 +156,40 @@ TEST_CASE("LoadElf rejects a PT_LOAD segment outside the mapped Memory range", "
 
     Memory memory(kBase, 2);  // too small for a 4-byte payload
     CHECK_THROWS_AS(LoadElf(bytes, memory), nf::mem::AccessFault);
+}
+
+TEST_CASE("LoadElf resolves tohost's address from the symbol table", "[loader]") {
+    constexpr uint32_t kBase = 0x80000000u;
+    auto bytes = BuildMinimalElf(kBase, kBase, {0x13, 0, 0, 0});
+    AppendSymbolTable(bytes, {{"begin_signature", 0x80002000u}, {"tohost", 0x80001000u}});
+
+    Memory memory(kBase, 0x3000);
+    const auto image = LoadElf(bytes, memory);
+
+    REQUIRE(image.has_value());
+    REQUIRE(image->tohost_addr.has_value());
+    CHECK(*image->tohost_addr == 0x80001000u);
+}
+
+TEST_CASE("LoadElf reports no tohost for a binary that doesn't define it", "[loader]") {
+    constexpr uint32_t kBase = 0x80000000u;
+    auto bytes = BuildMinimalElf(kBase, kBase, {0x13, 0, 0, 0});
+    AppendSymbolTable(bytes, {{"begin_signature", 0x80002000u}});
+
+    Memory memory(kBase, 0x3000);
+    const auto image = LoadElf(bytes, memory);
+
+    REQUIRE(image.has_value());
+    CHECK_FALSE(image->tohost_addr.has_value());
+}
+
+TEST_CASE("LoadElf reports no tohost when the image has no section headers", "[loader]") {
+    constexpr uint32_t kBase = 0x80000000u;
+    const auto bytes = BuildMinimalElf(kBase, kBase, {0x13, 0, 0, 0});
+
+    Memory memory(kBase, 0x1000);
+    const auto image = LoadElf(bytes, memory);
+
+    REQUIRE(image.has_value());
+    CHECK_FALSE(image->tohost_addr.has_value());
 }

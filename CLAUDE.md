@@ -45,9 +45,4 @@ Requirements:
 
 For a detailed description refer to the README.md
 
-Next steps towards Milestone 1:
-- see TODO In ProcessInstruction 
-- add Simulator::Run() 
-
-
 

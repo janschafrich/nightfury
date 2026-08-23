@@ -1,5 +1,8 @@
 #include "nf/loader/elf_loader.hpp"
 
+#include <expected>
+#include <optional>
+#include <string_view>
 #include <algorithm>
 #include <fstream>
 #include <vector>
@@ -15,12 +18,14 @@ namespace {
 // host compiler not padding the struct differently from the file layout.
 constexpr size_t kEhdrSize = 52;
 constexpr size_t kPhdrSize = 32;
+constexpr size_t kShdrSize = 40;
 
 constexpr uint8_t kElfClass32 = 1;   // e_ident[EI_CLASS]: 32-bit objects
 constexpr uint8_t kElfData2Lsb = 1;  // e_ident[EI_DATA]: little-endian
 constexpr uint16_t kEtExec = 2;      // e_type: fully linked executable
 constexpr uint16_t kEmRiscv = 243;   // e_machine: RISC-V
 constexpr uint32_t kPtLoad = 1;      // p_type: loadable segment
+constexpr uint32_t kShtSymtab = 2;   // sh_type: symbol table
 
 uint16_t ReadU16(std::span<const uint8_t> b, size_t off) {
     return static_cast<uint16_t>(b[off]) | static_cast<uint16_t>(b[off + 1] << 8);
@@ -36,6 +41,9 @@ struct ElfHeader {
     uint32_t phoff;
     uint16_t phentsize;
     uint16_t phnum;
+    uint32_t shoff;
+    uint16_t shentsize;
+    uint16_t shnum;
 };
 
 struct ProgramHeader {
@@ -44,6 +52,18 @@ struct ProgramHeader {
     uint32_t vaddr;
     uint32_t filesz;
     uint32_t memsz;
+};
+
+// Fields needed to walk a symbol table: for SHT_SYMTAB, sh_link is the
+// section index of the associated SHT_STRTAB and sh_entsize is the size of
+// one Elf32_Sym (16, but read rather than assumed -- same rationale as
+// reading e_phentsize instead of hardcoding it).
+struct SectionHeader {
+    uint32_t type;
+    uint32_t offset;
+    uint32_t size;
+    uint32_t link;
+    uint32_t entsize;
 };
 
 std::expected<ElfHeader, ElfFormatError> ParseElf32Header(std::span<const uint8_t> bytes) {
@@ -71,6 +91,9 @@ std::expected<ElfHeader, ElfFormatError> ParseElf32Header(std::span<const uint8_
         .phoff = ReadU32(bytes, 28),
         .phentsize = ReadU16(bytes, 42),
         .phnum = ReadU16(bytes, 44),
+        .shoff = ReadU32(bytes, 32),
+        .shentsize = ReadU16(bytes, 46),
+        .shnum = ReadU16(bytes, 48),
     };
 }
 
@@ -88,6 +111,72 @@ ProgramHeader ParseProgramHeader(std::span<const uint8_t> bytes, size_t off) {
     ph.filesz = ReadU32(bytes, off + 16);
     ph.memsz = ReadU32(bytes, off + 20);
     return ph;
+}
+
+// Elf32_Shdr field order: sh_name, sh_type, sh_flags, sh_addr, sh_offset,
+// sh_size, sh_link, sh_info, sh_addralign, sh_entsize.
+SectionHeader ParseSectionHeader(std::span<const uint8_t> bytes, size_t off) {
+    SectionHeader sh;
+    sh.type = ReadU32(bytes, off + 4);
+    sh.offset = ReadU32(bytes, off + 16);
+    sh.size = ReadU32(bytes, off + 20);
+    sh.link = ReadU32(bytes, off + 24);
+    sh.entsize = ReadU32(bytes, off + 36);
+    return sh;
+}
+
+std::string_view ReadCString(std::span<const uint8_t> bytes, size_t off) {
+    size_t end = off;
+    while (end < bytes.size() && bytes[end] != 0) {
+        ++end;
+    }
+    return std::string_view(reinterpret_cast<const char *>(bytes.data() + off), end - off);
+}
+
+// Resolves `name`'s address via the first SHT_SYMTAB section and its
+// SHT_STRTAB (sh_link). Absence of a match -- no section headers, no
+// symtab, or no symbol by that name -- is reported as nullopt rather than
+// ElfFormatError: a well-formed ELF with no such symbol isn't malformed,
+// it just isn't a riscv-tests binary. A malformed section header table
+// (truncated, out-of-range sh_link) is likewise folded into nullopt here
+// rather than surfaced as a load error, since it only affects this optional
+// lookup -- PT_LOAD segments (the part LoadElf must get right) don't
+// depend on section headers at all.
+std::optional<uint32_t> FindSymbolAddress(std::span<const uint8_t> bytes, const ElfHeader &hdr,
+                                           std::string_view name) {
+    for (uint16_t i = 0; i < hdr.shnum; ++i) {
+        const size_t off = static_cast<size_t>(hdr.shoff) + static_cast<size_t>(i) * hdr.shentsize;
+        if (off + kShdrSize > bytes.size()) {
+            return std::nullopt;
+        }
+        const SectionHeader sh = ParseSectionHeader(bytes, off);
+        if (sh.type != kShtSymtab) {
+            continue;
+        }
+        if (sh.link >= hdr.shnum || sh.entsize == 0) {
+            return std::nullopt;
+        }
+        const size_t strtab_off =
+            static_cast<size_t>(hdr.shoff) + static_cast<size_t>(sh.link) * hdr.shentsize;
+        const SectionHeader strtab = ParseSectionHeader(bytes, strtab_off);
+
+        const uint32_t sym_count = sh.size / sh.entsize;
+        for (uint32_t s = 0; s < sym_count; ++s) {
+            const size_t sym_off = sh.offset + static_cast<size_t>(s) * sh.entsize;
+            if (sym_off + 8 > bytes.size()) {
+                return std::nullopt;
+            }
+            const uint32_t st_name = ReadU32(bytes, sym_off + 0);
+            if (st_name == 0) {
+                continue;
+            }
+            if (ReadCString(bytes, strtab.offset + st_name) == name) {
+                return ReadU32(bytes, sym_off + 4);  // st_value
+            }
+        }
+        return std::nullopt;  // found the symtab; it just has no "tohost"
+    }
+    return std::nullopt;  // no SHT_SYMTAB section at all
 }
 
 }  // namespace
@@ -127,7 +216,7 @@ std::expected<ElfImage, ElfFormatError> LoadElf(std::span<const uint8_t> bytes,
         memory.WriteBlob(ph.vaddr, bytes.subspan(ph.offset, ph.filesz));
     }
 
-    return ElfImage{hdr->entry};
+    return ElfImage{.entry_pc = hdr->entry, .tohost_addr = FindSymbolAddress(bytes, *hdr, "tohost")};
 }
 
 std::expected<ElfImage, ElfFormatError> LoadElfFile(const std::string &path,

@@ -12,8 +12,8 @@ using nf::isa::Mnemonic;
 using nf::core::AluOp;
 using nf::mem::ElementSize;
 
-Interpreter::Interpreter(mem::MemoryInterface &memory, uint32_t reset_pc)
-     : memory_(memory), pc_(reset_pc) {}
+Interpreter::Interpreter(mem::MemoryInterface &memory, uint32_t reset_pc, uint32_t tohost_addr)
+     : memory_(memory), pc_(reset_pc), tohost_addr_(tohost_addr) {}
 
 StepResult Interpreter::ProcessInstruction() {
     // Inputs: instruction, register file and a memory
@@ -97,7 +97,7 @@ StepResult Interpreter::ProcessInstruction() {
             const uint32_t addr = rs1_val + static_cast<uint32_t>(inst_.imm);
             memory_.Store(inst_.mem_size, addr, rs2_val);
             // detect store to riscv_tests symbol
-            if (addr == kTohost) {
+            if (addr == tohost_addr_) {
                 pc_ = pc_next;
                 return StepResult::kHalted;
             }
@@ -166,12 +166,6 @@ StepResult Interpreter::ProcessInstruction() {
             break;
     }
 
-    // TODO: detect the write_tohost store (env/p/riscv_test.h) and return
-    // StepResult::kHalted -- needs the interpreter to know the tohost
-    // address, which the loader doesn't surface yet (it only reads program
-    // headers, not the symbol table). Design this once LoadElf grows symbol
-    // lookup.
-    
     pc_ = pc_next;
 
     return StepResult::kOk;

@@ -21,6 +21,10 @@ constexpr uint32_t kCsrMtvec = 0x305;
 constexpr uint32_t kCsrMepc = 0x341;
 constexpr uint32_t kCsrMcause = 0x342;
 
+// Outside every test's 0x100-byte Memory, so it can never alias a real
+// store -- these tests exercise trap/CSR handling, not tohost detection.
+constexpr uint32_t kNoTohost = 0xFFFFFFFFu;
+
 uint32_t encode_i(uint32_t imm, uint32_t rs1, uint32_t funct3, uint32_t rd,
                    uint32_t opcode) {
     return (imm << 20) | (rs1 << 15) | (funct3 << 12) | (rd << 7) | opcode;
@@ -37,7 +41,7 @@ uint32_t encode_s(int32_t imm, uint32_t rs2, uint32_t rs1, uint32_t funct3,
 
 TEST_CASE("Interpreter traps ecall to mtvec and records mepc/mcause", "[interpreter]") {
     Memory memory(0, 0x100);
-    Interpreter interp(memory, 0);
+    Interpreter interp(memory, 0, kNoTohost);
 
     // 0:  csrrwi x0, mtvec, 24      -- mtvec = 24 (uimm is only 5 bits, max 31)
     memory.Store(ElementSize::kWord, 0, encode_i(kCsrMtvec, 24, 0b101, 0, kOpSystem));
@@ -60,7 +64,7 @@ TEST_CASE("Interpreter traps ecall to mtvec and records mepc/mcause", "[interpre
 
 TEST_CASE("Interpreter's mret jumps pc to mepc", "[interpreter]") {
     Memory memory(0, 0x100);
-    Interpreter interp(memory, 0);
+    Interpreter interp(memory, 0, kNoTohost);
 
     // 0:  csrrwi x0, mepc, 12       -- mepc = 12
     memory.Store(ElementSize::kWord, 0, encode_i(kCsrMepc, 12, 0b101, 0, kOpSystem));
@@ -78,7 +82,7 @@ TEST_CASE("Interpreter's mret jumps pc to mepc", "[interpreter]") {
 
 TEST_CASE("csrrw/csrrwi write the new value and return the old value in rd", "[interpreter]") {
     Memory memory(0, 0x100);
-    Interpreter interp(memory, 0);
+    Interpreter interp(memory, 0, kNoTohost);
 
     // 0: csrrwi x0, mtvec, 20   -- mtvec = 20, old value (0) discarded into x0
     memory.Store(ElementSize::kWord, 0, encode_i(kCsrMtvec, 20, 0b101, 0, kOpSystem));
@@ -99,7 +103,7 @@ TEST_CASE("csrrw/csrrwi write the new value and return the old value in rd", "[i
 
 TEST_CASE("csrrs/csrrc perform OR/AND-NOT read-modify-write", "[interpreter]") {
     Memory memory(0, 0x100);
-    Interpreter interp(memory, 0);
+    Interpreter interp(memory, 0, kNoTohost);
 
     // 0: addi x2, x0, 0x30       -- x2 = 0b110000
     memory.Store(ElementSize::kWord, 0, encode_i(0x30, 0, 0b000, 2, kOpImm));
