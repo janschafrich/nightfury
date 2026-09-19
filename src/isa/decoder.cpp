@@ -99,6 +99,7 @@ std::string_view ToString(Mnemonic m) {
         case Mnemonic::kOr: return "or";
         case Mnemonic::kAnd: return "and";
         case Mnemonic::kFence: return "fence";
+        case Mnemonic::kFencei: return "fence.i";
         case Mnemonic::kEcall: return "ecall";
         case Mnemonic::kEbreak: return "ebreak";
         case Mnemonic::kMret: return "mret";
@@ -285,9 +286,11 @@ DecodedInstruction Decoder::Decode(uint32_t word) {
 
         case kOpFence:
             ins.format = Format::kI;
-            if (ins.funct3 == 0b000) ins.mnemonic = Mnemonic::kFence;
-            break;
-
+            switch (ins.funct3) {
+                case 0b000: ins.mnemonic = Mnemonic::kFence; break;
+                case 0b001: ins.mnemonic = Mnemonic::kFencei; break;
+                default: break;
+            }
         // CSR instructions reuse the I-type field layout (rd, funct3, rs1,
         // imm[11:0]) even though the semantics differ: imm is an unsigned
         // CSR address rather than a sign-extended value, and for the *i

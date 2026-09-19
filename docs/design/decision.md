@@ -23,3 +23,9 @@
 - Eager decode: to prevent decode and pipeline logic from drifting apart, everything needed laster is derived at decode
 - Learning: this apparently how Gem5 does it, in contrast to hardware
 - Hardware goes for lazy decoding to save on area (wiring)
+
+
+# Loader
+
+- check executable (elf magic word, executable type, riscv isa)
+- extract symbols from riscv-test suite instead of hard coding them

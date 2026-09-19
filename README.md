@@ -44,6 +44,14 @@ cmake --build build --target nf-pipeline
 
 ```
 
+## ISA Tests
+
+Must be compiled first.
+```sh
+./tests/isa-compliance/run-riscv-tests.sh
+```
+
+
 ## Unit Tests
 
 ```Sh

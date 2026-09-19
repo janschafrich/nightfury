@@ -158,7 +158,7 @@ StepResult Interpreter::ProcessInstruction() {
             pc_next = csrs_.mepc();
             break;
 
-        case Mnemonic::kFence: case Mnemonic::kEbreak:
+        case Mnemonic::kFence: case Mnemonic::kFencei: case Mnemonic::kEbreak:
             break;  // no architectural effect modeled yet
 
         case Mnemonic::kInvalid:
