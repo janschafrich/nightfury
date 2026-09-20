@@ -15,7 +15,6 @@ Requirements:
 - language: C++23 combined with Python
 - C++ simulator core writes trace file
 - Python reads trace file and analyzes it
-- my OS: PopOS 24.04, based upon Ubuntu
 
 # Milestones
 
