@@ -78,17 +78,8 @@ StepResult Interpreter::ProcessInstruction() {
         case Mnemonic::kLb: case Mnemonic::kLh: case Mnemonic::kLw:
         case Mnemonic::kLbu: case Mnemonic::kLhu: {
             const uint32_t addr = rs1_val + static_cast<uint32_t>(inst_.imm);
-            const uint32_t loaded = memory_.Load(inst_.mem_size, addr);
-
-            // Memory::Load always zero-extends the bytes it reads; LB/LH
-            // additionally sign-extend per the RV32I semantics, LBU/LHU/LW
-            // use the zero-extended value as-is.
-            uint32_t result = loaded;
-            if (inst_.mnemonic == Mnemonic::kLb) {
-                result = static_cast<uint32_t>(static_cast<int32_t>(loaded << 24) >> 24);
-            } else if (inst_.mnemonic == Mnemonic::kLh) {
-                result = static_cast<uint32_t>(static_cast<int32_t>(loaded << 16) >> 16);
-            }
+            uint32_t result = memory_.Load(inst_.mem_size, addr);
+            if (inst_.sign_extend) result = SignExtend(result, inst_.mem_size);
             regfile_.Write(inst_.rd, result);
             break;
         }

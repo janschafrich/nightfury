@@ -14,7 +14,9 @@ using nf::mem::Memory;
 namespace {
 
 constexpr uint32_t kOpImm = 0b0010011;
+constexpr uint32_t kOpLoad = 0b0000011;
 constexpr uint32_t kOpStore = 0b0100011;
+constexpr uint32_t kOpLui = 0b0110111;
 constexpr uint32_t kOpSystem = 0b1110011;
 
 constexpr uint32_t kCsrMtvec = 0x305;
@@ -35,6 +37,10 @@ uint32_t encode_s(int32_t imm, uint32_t rs2, uint32_t rs1, uint32_t funct3,
     const uint32_t u = static_cast<uint32_t>(imm);
     return ((u >> 5 & 0x7F) << 25) | (rs2 << 20) | (rs1 << 15) |
            (funct3 << 12) | ((u & 0x1F) << 7) | opcode;
+}
+
+uint32_t encode_u(uint32_t imm20, uint32_t rd, uint32_t opcode) {
+    return (imm20 << 12) | (rd << 7) | opcode;
 }
 
 }  // namespace
@@ -122,4 +128,39 @@ TEST_CASE("csrrs/csrrc perform OR/AND-NOT read-modify-write", "[interpreter]") {
 
     CHECK(memory.Load(ElementSize::kWord, 64) == 0x0Fu);
     CHECK(memory.Load(ElementSize::kWord, 68) == 0x3Fu);
+}
+
+TEST_CASE("Interpreter sign-extends lb/lh and zero-extends lbu/lhu", "[interpreter]") {
+    Memory memory(0, 0x100);
+    Interpreter interp(memory, 0, kNoTohost);
+
+    // 0:  addi x1, x0, 0x80
+    memory.Store(ElementSize::kWord, 0, encode_i(0x80, 0, 0b000, 1, kOpImm));
+    // 4:  sb x1, 0x80(x0)   -- byte 0x80 at scratch 0x80 (program ends at 47)
+    memory.Store(ElementSize::kWord, 4, encode_s(0x80, 1, 0, 0b000, kOpStore));
+    // 8:  lb x2, 0x80(x0)   -- sign-extended
+    memory.Store(ElementSize::kWord, 8, encode_i(0x80, 0, 0b000, 2, kOpLoad));
+    // 12: lbu x3, 0x80(x0)  -- zero-extended
+    memory.Store(ElementSize::kWord, 12, encode_i(0x80, 0, 0b100, 3, kOpLoad));
+    // 16: lui x4, 0x8       -- x4 = 0x8000 (can't build this with addi, 12-bit imm)
+    memory.Store(ElementSize::kWord, 16, encode_u(0x8, 4, kOpLui));
+    // 20: sh x4, 0x82(x0)   -- halfword 0x8000 at scratch 0x82
+    memory.Store(ElementSize::kWord, 20, encode_s(0x82, 4, 0, 0b001, kOpStore));
+    // 24: lh x5, 0x82(x0)   -- sign-extended
+    memory.Store(ElementSize::kWord, 24, encode_i(0x82, 0, 0b001, 5, kOpLoad));
+    // 28: lhu x6, 0x82(x0)  -- zero-extended
+    memory.Store(ElementSize::kWord, 28, encode_i(0x82, 0, 0b101, 6, kOpLoad));
+    // 32..44: sw x2/x3/x5/x6, 64..76(x0)
+    memory.Store(ElementSize::kWord, 32, encode_s(64, 2, 0, 0b010, kOpStore));
+    memory.Store(ElementSize::kWord, 36, encode_s(68, 3, 0, 0b010, kOpStore));
+    memory.Store(ElementSize::kWord, 40, encode_s(72, 5, 0, 0b010, kOpStore));
+    memory.Store(ElementSize::kWord, 44, encode_s(76, 6, 0, 0b010, kOpStore));
+
+    // 12 instructions: addi, sb, lb, lbu, lui, sh, lh, lhu, and 4 stores.
+    for (int i = 0; i < 12; ++i) interp.ProcessInstruction();
+
+    CHECK(memory.Load(ElementSize::kWord, 64) == 0xFFFFFF80u);  // lb
+    CHECK(memory.Load(ElementSize::kWord, 68) == 0x00000080u);  // lbu
+    CHECK(memory.Load(ElementSize::kWord, 72) == 0xFFFF8000u);  // lh
+    CHECK(memory.Load(ElementSize::kWord, 76) == 0x00008000u);  // lhu
 }

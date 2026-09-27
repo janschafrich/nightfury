@@ -11,6 +11,24 @@ namespace nf::mem {
 
 enum class ElementSize : uint8_t { kByte, kHalfword, kWord };
 
+// Extends the low `size` bytes of a zero-extended load result to a full
+// word, as the MEM-stage extend mux would. Shared by every consumer of
+// MemoryInterface (interpreter now, pipeline MEM stage later), so it lives
+// here next to ElementSize instead of in any single consumer. The double
+// cast relies on C++20 modulo conversions; before C++20 the narrowing was
+// implementation-defined.
+constexpr uint32_t SignExtend(uint32_t value, ElementSize size) {
+    switch (size) {
+        case ElementSize::kByte:
+            return static_cast<uint32_t>(static_cast<int8_t>(value));
+        case ElementSize::kHalfword:
+            return static_cast<uint32_t>(static_cast<int16_t>(value));
+        case ElementSize::kWord:
+            return value;
+    }
+    return 0;  // unreachable: ElementSize has no other enumerators
+}
+
 // Thrown when a load/store falls outside the backing store's address range.
 // Not used for architectural traps (e.g. misaligned-access exceptions) --
 // those are the interpreter's concern once it models RV32 exception entry.

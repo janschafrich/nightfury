@@ -179,10 +179,12 @@ DecodedInstruction Decoder::Decode(uint32_t word) {
                 case 0b000:
                     ins.mnemonic = Mnemonic::kLb;
                     ins.mem_size = mem::ElementSize::kByte;
+                    ins.sign_extend = true;
                     break;
                 case 0b001:
                     ins.mnemonic = Mnemonic::kLh;
                     ins.mem_size = mem::ElementSize::kHalfword;
+                    ins.sign_extend = true;
                     break;
                 case 0b010:
                     ins.mnemonic = Mnemonic::kLw;

@@ -41,15 +41,15 @@ std::string_view ToString(Mnemonic m);
 // the ID/EX register, so decode logic lives here and nowhere else.
 struct DecodedInstruction {
     uint32_t raw = 0;
-    Format format = Format::kInvalid;
-    Mnemonic mnemonic = Mnemonic::kInvalid;
-
+    int32_t imm = 0;
     uint8_t rd = 0;
     uint8_t rs1 = 0;
     uint8_t rs2 = 0;
     uint8_t funct3 = 0;
     uint8_t funct7 = 0;
-    int32_t imm = 0;
+    bool    sign_extend = 0;
+    Format format = Format::kInvalid;
+    Mnemonic mnemonic = Mnemonic::kInvalid;
 
     // Meaningful only for load/store mnemonics; resolved here from funct3
     // so the MEM stage never has to re-interpret raw opcode bits.

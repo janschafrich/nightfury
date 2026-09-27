@@ -5,6 +5,7 @@
 using nf::isa::Decoder;
 using nf::isa::Format;
 using nf::isa::Mnemonic;
+using nf::mem::ElementSize;
 
 // Encoding helpers mirror the RV32 bit layouts so test cases read like the
 // spec tables rather than pre-computed hex.
@@ -104,6 +105,37 @@ TEST_CASE("Decoder decodes loads and stores with correct immediates", "[decoder]
     CHECK(sw.rs1 == 2);
     CHECK(sw.rs2 == 3);
     CHECK(sw.imm == 8);
+}
+
+TEST_CASE("Decoder resolves load width and sign_extend policy from funct3", "[decoder]") {
+    // The eager-decode contract: the funct3 table freezes {width, signed}
+    // here so no later stage re-interprets opcode bits.
+    const struct {
+        uint32_t funct3;
+        Mnemonic mnemonic;
+        ElementSize size;
+        bool sign_extend;
+    } loads[] = {
+        {0b000, Mnemonic::kLb,  ElementSize::kByte,     true},
+        {0b001, Mnemonic::kLh,  ElementSize::kHalfword, true},
+        {0b010, Mnemonic::kLw,  ElementSize::kWord,     false},
+        {0b100, Mnemonic::kLbu, ElementSize::kByte,     false},
+        {0b101, Mnemonic::kLhu, ElementSize::kHalfword, false},
+    };
+
+    for (const auto& load : loads) {
+        const auto ins = Decoder::Decode(encode_i(0, 2, load.funct3, 3, 0b0000011));
+        CAPTURE(load.funct3);
+        CHECK(ins.mnemonic == load.mnemonic);
+        CHECK(ins.mem_size == load.size);
+        CHECK(ins.sign_extend == load.sign_extend);
+    }
+
+    // Stores and non-memory ops keep the default-initialized false.
+    const auto sw = Decoder::Decode(encode_s(8, 3, 2, 0b010, 0b0100011));
+    CHECK_FALSE(sw.sign_extend);
+    const auto add = Decoder::Decode(encode_r(0, 7, 6, 0b000, 5, 0b0110011));
+    CHECK_FALSE(add.sign_extend);
 }
 
 TEST_CASE("Decoder decodes branches with B-immediate", "[decoder]") {

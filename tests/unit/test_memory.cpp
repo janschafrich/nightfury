@@ -6,6 +6,7 @@
 using nf::mem::ElementSize;
 using nf::mem::Memory;
 using nf::mem::AccessFault;
+using nf::mem::SignExtend;
 
 namespace {
     constexpr size_t kResetVector = 0x80000000u;
@@ -65,4 +66,29 @@ TEST_CASE("Access fault reports the offending address and width", "[mem]") {
     REQUIRE_THROWS_MATCHES(memory.Load(ElementSize::kHalfword, 0),
                            AccessFault,
                            AccessFaultMatcher(0, ElementSize::kHalfword));
+}
+
+TEST_CASE("SignExtend extends the low bytes per element size", "[mem]") {
+    // Byte: bit 7 fans out to bits [31:8]
+    CHECK(SignExtend(0x80u, ElementSize::kByte) == 0xFFFFFF80u);
+    CHECK(SignExtend(0xFFu, ElementSize::kByte) == 0xFFFFFFFFu);
+    CHECK(SignExtend(0x7Fu, ElementSize::kByte) == 0x0000007Fu);
+    CHECK(SignExtend(0x00u, ElementSize::kByte) == 0x00000000u);
+
+    // Halfword: bit 15 fans out to bits [31:16]
+    CHECK(SignExtend(0x8000u, ElementSize::kHalfword) == 0xFFFF8000u);
+    CHECK(SignExtend(0xFFFFu, ElementSize::kHalfword) == 0xFFFFFFFFu);
+    CHECK(SignExtend(0x7FFFu, ElementSize::kHalfword) == 0x00007FFFu);
+
+    // Word: nothing to extend, identity
+    CHECK(SignExtend(0x12345678u, ElementSize::kWord) == 0x12345678u);
+    CHECK(SignExtend(0xFFFFFFFFu, ElementSize::kWord) == 0xFFFFFFFFu);
+}
+
+TEST_CASE("SignExtend only looks at the low bytes regardless of upper bits", "[mem]") {
+    // Memory::Load only ever returns significant bytes, but the extend
+    // contract must not depend on callers guaranteeing that.
+    CHECK(SignExtend(0xAB80u, ElementSize::kByte) == 0xFFFFFF80u);
+    CHECK(SignExtend(0xAB7Fu, ElementSize::kByte) == 0x0000007Fu);
+    CHECK(SignExtend(0x12348000u, ElementSize::kHalfword) == 0xFFFF8000u);
 }
