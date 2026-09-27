@@ -60,7 +60,7 @@ The compliance script defaults to `build/bin/nf-functional` and `$HOME/software/
 
 # Conventions
 
-- C++23, Google style guide, including PascalCase method names (`Compute`, `Decode`, `Valid`)
+- C++23, Google style guide (https://google.github.io/styleguide/cppguide.html), including PascalCase method names (`Compute`, `Decode`, `Valid`)
 - Headers live in `include/nf/`, mirroring `src/` directory structure
 - Every module gets a matching unit test in `tests/unit`
 - Record non-obvious design decisions and rationale in `docs/design/decision.md`

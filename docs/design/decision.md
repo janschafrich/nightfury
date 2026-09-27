@@ -89,3 +89,14 @@ Chose 1., single pipeline config, the simulator is not intended to grow very com
 Chose 1, as I want to learn micro-architectural modeling and not simulation infrastructure
 
 
+# Pipeline Location
+
+- registers are read in ID stage
+- outcome and target is determined in EX stage
+- bubbles are represented by non-valid packets
+
+# 
+
+- 
+
+
