@@ -18,15 +18,26 @@ Requirements:
 
 # Milestones
 
+## Done
+
 1. Functional-only RV32IM interpreter, verified against 
 	1. `riscv-tests`
 	2. `spike`
+
+## Working On
+
 2. Bolt on the 5-stage pipeline _assuming no hazards_ (just get the plumbing/registers-between-stages right)
-3. Add hazard detection with stalling only (no forwarding) — correctness over performance
-4. Add forwarding/bypassing
-5. Add always-taken prediction + misprediction flush
-6. Add perf counters + Python analysis
-7. Stretch: caches, 2-bit/gshare predictor
+
+## Remaining
+
+3. Add hazard detection and FU timing
+- hazard resolution by stalling only (no forwarding),
+- multi-cycle FU timing (opLatency, issLatency, pipelined)
+4. Superscalar: 2 wide + contention
+5. Forwarding via Scoreboard
+6. Add always-taken prediction + misprediction flush
+7. Add perf counters + Python analysis
+8. Stretch: caches, 2-bit/gshare predictor
 
 
 
