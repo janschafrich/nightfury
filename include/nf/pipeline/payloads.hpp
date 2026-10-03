@@ -15,7 +15,9 @@ namespace nf::pipeline {
 struct FetchPacket {
     uint32_t pc;      
     uint32_t raw_word;
-    bool     valid;
+    bool     valid = false;
+
+    bool operator==(const FetchPacket&) const = default;
 };
 
 struct DecodePacket {
@@ -23,7 +25,7 @@ struct DecodePacket {
     nf::isa::DecodedInstruction decoded_inst;
     uint32_t rs1_val;
     uint32_t rs2_val;
-    bool     valid;
+    bool     valid = false;
 };
 
 struct ExecutePacket {
@@ -32,20 +34,21 @@ struct ExecutePacket {
     uint32_t rs2_val;           // for mem stage
     uint32_t alu_result;        // contains results from ALU ops, and target address
     uint32_t store_val;
-    uint32_t branch_target;
+    uint32_t pc_next;           // branch target
     uint8_t  rd;                // WB writes if rd != 0
     nf::mem::ElementSize size;
-    bool     branch_taken;
-    bool     is_load;            // 0 load, 1 store
-    bool     is_store;           // 0 load, 1 store
+    bool     is_control;        // jump or taken branch
+    bool     is_load;
+    bool     is_store;
     bool     sign_extend;        // 0 unsigned, 1 signed
-    bool     valid;
+    bool     valid = false;
 };
 
 struct MemoryPacket {
     uint32_t pc;
+    uint32_t wb_data;       // either ALU result or load data
     uint8_t  rd;
-    bool     valid;
+    bool     valid = false;
     // if rd = 0 no write back needed
 };
 

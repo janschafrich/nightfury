@@ -6,6 +6,9 @@ namespace nf::pipeline {
 // Placeholder for the cycle-accurate IF/ID/EX/MEM/WB pipeline model.
 int Placeholder();
 
+// evaluate each pipeline stage
+// commit the result for each pipeline stage
+
 }  // namespace nf::pipeline
 
 #endif  // NF_PIPELINE_PIPELINE_HPP_
