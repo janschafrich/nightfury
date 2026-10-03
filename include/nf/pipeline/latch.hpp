@@ -22,8 +22,8 @@ class PipelineLatch {
         void    Commit() { q_ = std::move(d_); }      // clock edge d_ = q_
     
     private:
-        T q_;   // value served to consumers this cycle
-        T d_;   // value being produced this cycle
+        T q_{};   // value served to consumers this cycle
+        T d_{};   // value being produced this cycle
 };
 
 
