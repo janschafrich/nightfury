@@ -27,12 +27,11 @@ Requirements:
 ## Working On
 
 2. Bolt on the 5-stage pipeline _assuming no hazards_ (just get the plumbing/registers-between-stages right)
+- handle hazards (control, data) via stalls (no forwarding)
 
 ## Remaining
 
-3. Add hazard detection and FU timing
-- hazard resolution by stalling only (no forwarding),
-- multi-cycle FU timing (opLatency, issLatency, pipelined)
+3. Add FU timing: multi-cycle FU timing (opLatency, issLatency, pipelined)
 4. Superscalar: 2 wide + contention
 5. Forwarding via Scoreboard
 6. Add always-taken prediction + misprediction flush

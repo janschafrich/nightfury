@@ -21,6 +21,9 @@
 # Decoder
 
 - Eager decode: to prevent decode and pipeline logic from drifting apart, everything needed later is derived at decode and then frozen
+- Exceptions to the rule:
+    - to support control hazard resolution via stalling of IF, IF must know whether it fetched a branch/jump
+    - for this purpose IF will inspect the opcode of a fetched instruction for branch/jal/jalr
 - Learning: this apparently how Gem5 does it, 
 - In contrast:
 - Hardware goes for lazy decoding to save on area (wiring): each stage only decodes the information it needs, the rest travels encoded down the pipe
@@ -93,10 +96,12 @@ Chose 1, as I want to learn micro-architectural modeling and not simulation infr
 
 - registers are read in ID stage
 - outcome and target is determined in EX stage
-- bubbles are represented by non-valid packets
+- when evaluated a halt, execution stops and pipeline contents are discarded 
 
-# 
 
-- 
+# Control Hazard Resolution
+- stall: IF inserts pipeline bubbles, by generates non-valid packets 
+
+
 
 
