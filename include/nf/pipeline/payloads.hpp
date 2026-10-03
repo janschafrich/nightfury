@@ -26,6 +26,8 @@ struct DecodePacket {
     uint32_t rs1_val;
     uint32_t rs2_val;
     bool     valid = false;
+
+    bool operator==(const DecodePacket&) const = default;
 };
 
 struct ExecutePacket {
@@ -42,6 +44,8 @@ struct ExecutePacket {
     bool     is_store;
     bool     sign_extend;        // 0 unsigned, 1 signed
     bool     valid = false;
+
+    bool operator==(const ExecutePacket&) const = default;
 };
 
 struct MemoryPacket {
@@ -50,6 +54,7 @@ struct MemoryPacket {
     uint8_t  rd;
     bool     valid = false;
     // if rd = 0 no write back needed
+    bool operator==(const MemoryPacket&) const = default;
 };
 
 
