@@ -32,18 +32,18 @@ std::string_view Simulator::Version() { return "0.1.0"; }
 
 Simulator::Simulator(const std::string &elf_path, uint32_t mem_base_addr, size_t mem_size_bytes)
     // member initialization list
-    : _memory(mem_base_addr, mem_size_bytes),
-      _image(RequireLoad(elf_path, _memory)),
-      _interpreter(_memory, _image.entry_pc, *_image.tohost_addr),
-      _tohost_addr(*_image.tohost_addr) {}  // constructor body is empty
+    : memory_(mem_base_addr, mem_size_bytes),
+      image_(RequireLoad(elf_path, memory_)),
+      interpreter_(memory_, arch_, image_.entry_pc, *image_.tohost_addr),
+      tohost_addr_(*image_.tohost_addr) {}  // constructor body is empty
 
 SimResult Simulator::Run() {
     StepResult result;
     do {
-        result = _interpreter.ProcessInstruction();
+        result = interpreter_.ProcessInstruction();
     } while (result != StepResult::kHalted);
 
-    const uint32_t tohost_value = _memory.Load(ElementSize::kWord, _tohost_addr);
+    const uint32_t tohost_value = memory_.Load(ElementSize::kWord, tohost_addr_);
 
     return SimResult{
         .passed         = (tohost_value == 1),

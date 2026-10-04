@@ -4,6 +4,7 @@
 #include "nf/mem/memory.hpp"
 
 using nf::core::Interpreter;
+using nf::core::ArchState;
 using nf::mem::ElementSize;
 using nf::mem::Memory;
 
@@ -19,6 +20,9 @@ constexpr uint32_t kOpStore = 0b0100011;
 constexpr uint32_t kOpLui = 0b0110111;
 constexpr uint32_t kOpSystem = 0b1110011;
 
+constexpr uint8_t  kFunc3Addi = 0b000;
+constexpr uint8_t  kFunc3Sw = 0b010;
+
 constexpr uint32_t kCsrMtvec = 0x305;
 constexpr uint32_t kCsrMepc = 0x341;
 constexpr uint32_t kCsrMcause = 0x342;
@@ -26,6 +30,7 @@ constexpr uint32_t kCsrMcause = 0x342;
 // Outside every test's 0x100-byte Memory, so it can never alias a real
 // store -- these tests exercise trap/CSR handling, not tohost detection.
 constexpr uint32_t kNoTohost = 0xFFFFFFFFu;
+constexpr uint32_t kResetPC = 0x0;
 
 uint32_t encode_i(uint32_t imm, uint32_t rs1, uint32_t funct3, uint32_t rd,
                    uint32_t opcode) {
@@ -47,7 +52,8 @@ uint32_t encode_u(uint32_t imm20, uint32_t rd, uint32_t opcode) {
 
 TEST_CASE("Interpreter traps ecall to mtvec and records mepc/mcause", "[interpreter]") {
     Memory memory(0, 0x100);
-    Interpreter interp(memory, 0, kNoTohost);
+    ArchState arch;
+    Interpreter interp(memory, arch, kResetPC, kNoTohost);
 
     // 0:  csrrwi x0, mtvec, 24      -- mtvec = 24 (uimm is only 5 bits, max 31)
     memory.Store(ElementSize::kWord, 0, encode_i(kCsrMtvec, 24, 0b101, 0, kOpSystem));
@@ -70,14 +76,15 @@ TEST_CASE("Interpreter traps ecall to mtvec and records mepc/mcause", "[interpre
 
 TEST_CASE("Interpreter's mret jumps pc to mepc", "[interpreter]") {
     Memory memory(0, 0x100);
-    Interpreter interp(memory, 0, kNoTohost);
+    ArchState arch;
+    Interpreter interp(memory, arch, kResetPC, kNoTohost);
 
     // 0:  csrrwi x0, mepc, 12       -- mepc = 12
     memory.Store(ElementSize::kWord, 0, encode_i(kCsrMepc, 12, 0b101, 0, kOpSystem));
     // 4:  mret                      -- pc <- mepc (0x302 = mret's fixed imm12)
     memory.Store(ElementSize::kWord, 4, encode_i(0x302, 0, 0b000, 0, kOpSystem));
     // 12: addi x5, x0, 77           -- only reached if mret actually jumped here
-    memory.Store(ElementSize::kWord, 12, encode_i(77, 0, 0b000, 5, kOpImm));
+    memory.Store(ElementSize::kWord, 12, encode_i(77, 0, kFunc3Addi, 5, kOpImm));
     // 16: sw x5, 64(x0)
     memory.Store(ElementSize::kWord, 16, encode_s(64, 5, 0, 0b010, kOpStore));
 
@@ -88,7 +95,8 @@ TEST_CASE("Interpreter's mret jumps pc to mepc", "[interpreter]") {
 
 TEST_CASE("csrrw/csrrwi write the new value and return the old value in rd", "[interpreter]") {
     Memory memory(0, 0x100);
-    Interpreter interp(memory, 0, kNoTohost);
+    ArchState arch;
+    Interpreter interp(memory, arch, kResetPC, kNoTohost);
 
     // 0: csrrwi x0, mtvec, 20   -- mtvec = 20, old value (0) discarded into x0
     memory.Store(ElementSize::kWord, 0, encode_i(kCsrMtvec, 20, 0b101, 0, kOpSystem));
@@ -109,10 +117,11 @@ TEST_CASE("csrrw/csrrwi write the new value and return the old value in rd", "[i
 
 TEST_CASE("csrrs/csrrc perform OR/AND-NOT read-modify-write", "[interpreter]") {
     Memory memory(0, 0x100);
-    Interpreter interp(memory, 0, kNoTohost);
+    ArchState arch;
+    Interpreter interp(memory, arch, kResetPC, kNoTohost);
 
     // 0: addi x2, x0, 0x30       -- x2 = 0b110000
-    memory.Store(ElementSize::kWord, 0, encode_i(0x30, 0, 0b000, 2, kOpImm));
+    memory.Store(ElementSize::kWord, 0, encode_i(0x30, 0, kFunc3Addi, 2, kOpImm));
     // 4: csrrwi x0, mtvec, 0x0F  -- mtvec = 0b001111
     memory.Store(ElementSize::kWord, 4, encode_i(kCsrMtvec, 0x0F, 0b101, 0, kOpSystem));
     // 8: csrrs x1, mtvec, x2     -- x1 = old (0x0F); mtvec = 0x0F | 0x30 = 0x3F
@@ -132,10 +141,11 @@ TEST_CASE("csrrs/csrrc perform OR/AND-NOT read-modify-write", "[interpreter]") {
 
 TEST_CASE("Interpreter sign-extends lb/lh and zero-extends lbu/lhu", "[interpreter]") {
     Memory memory(0, 0x100);
-    Interpreter interp(memory, 0, kNoTohost);
+    ArchState arch;
+    Interpreter interp(memory, arch, kResetPC, kNoTohost);
 
     // 0:  addi x1, x0, 0x80
-    memory.Store(ElementSize::kWord, 0, encode_i(0x80, 0, 0b000, 1, kOpImm));
+    memory.Store(ElementSize::kWord, 0, encode_i(0x80, 0, kFunc3Addi, 1, kOpImm));
     // 4:  sb x1, 0x80(x0)   -- byte 0x80 at scratch 0x80 (program ends at 47)
     memory.Store(ElementSize::kWord, 4, encode_s(0x80, 1, 0, 0b000, kOpStore));
     // 8:  lb x2, 0x80(x0)   -- sign-extended
@@ -163,4 +173,22 @@ TEST_CASE("Interpreter sign-extends lb/lh and zero-extends lbu/lhu", "[interpret
     CHECK(memory.Load(ElementSize::kWord, 68) == 0x00000080u);  // lbu
     CHECK(memory.Load(ElementSize::kWord, 72) == 0xFFFF8000u);  // lh
     CHECK(memory.Load(ElementSize::kWord, 76) == 0x00008000u);  // lhu
+}
+
+TEST_CASE("Interpreter writes land in shared arch state", "[interpreter]") {
+    Memory memory(0, 0x100);
+    ArchState arch;
+    Interpreter interp(memory, arch, kResetPC, kNoTohost);
+
+    uint8_t rs1 = 0;
+    uint8_t rs2 = 0;
+    uint8_t rd = 1;
+    uint8_t imm = 0x42;
+    // addi x1, x0, 0x42
+    memory.Store(ElementSize::kWord, 0, encode_i(imm, rs1, kFunc3Addi, rd, kOpImm));
+    
+    for (int i = 0; i < 1; ++i) interp.ProcessInstruction();
+
+    CHECK(arch.regs.Read(rd) == 0x42);
+
 }

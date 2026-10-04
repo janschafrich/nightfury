@@ -6,6 +6,7 @@
 #include <string_view>
 
 #include "nf/core/interpreter.hpp"
+#include "nf/core/arch_state.hpp"
 #include "nf/loader/elf_loader.hpp"
 #include "nf/mem/memory.hpp"
 
@@ -39,13 +40,14 @@ public:
     static std::string_view Version();
 
 private:
-    // Declaration order is initialization order in C++: _image is resolved
+    // Declaration order is initialization order in C++: image_ is resolved
     // once _memory exists (LoadElfFile writes PT_LOAD segments into it) and
-    // before _interpreter, which consumes _image's entry_pc/tohost_addr.
-    Memory _memory;
-    ElfImage _image;
-    Interpreter _interpreter;
-    uint32_t _tohost_addr;
+    // before interpreter_, which consumes image_'s entry_pc/tohost_addr.
+    Memory memory_;
+    core::ArchState arch_;
+    ElfImage image_;            // needs memory_
+    Interpreter interpreter_;   // needs memory_ + arch_ + image_
+    uint32_t tohost_addr_;
     // future pipeline?
 
 };

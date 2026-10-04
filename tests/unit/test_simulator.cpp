@@ -188,3 +188,5 @@ TEST_CASE("Simulator's constructor throws for a binary with no tohost symbol", "
 
     CHECK_THROWS_AS(Simulator(path, kBase, 0x1000), std::runtime_error);
 }
+
+

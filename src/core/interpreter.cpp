@@ -2,6 +2,7 @@
 #include <utility>
 
 #include "nf/core/interpreter.hpp"
+#include "nf/core/arch_state.hpp"
 #include "nf/core/alu.hpp"
 
 namespace nf::core {
@@ -12,8 +13,15 @@ using nf::isa::Mnemonic;
 using nf::core::AluOp;
 using nf::mem::ElementSize;
 
-Interpreter::Interpreter(mem::MemoryInterface &memory, uint32_t reset_pc, uint32_t tohost_addr)
-     : memory_(memory), pc_(reset_pc), tohost_addr_(tohost_addr) {}
+Interpreter::Interpreter(mem::MemoryInterface &memory, 
+                        core::ArchState &arch,
+                        uint32_t reset_pc, 
+                        uint32_t tohost_addr
+) : regfile_(arch.regs), 
+    csrs_(arch.csrs),
+    memory_(memory), 
+    pc_(reset_pc), 
+    tohost_addr_(tohost_addr) {}
 
 StepResult Interpreter::ProcessInstruction() {
     // Inputs: instruction, register file and a memory
