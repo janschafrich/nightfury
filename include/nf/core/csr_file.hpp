@@ -30,6 +30,8 @@ public:
     void set_mepc(uint32_t val) { mepc_ = val; }
     void set_mcause(uint32_t val) { mcause_ = val; }
 
+    bool operator== (const CsrFile &) const = default;
+
 private:
     uint32_t mtvec_ = 0;
     uint32_t mepc_ = 0;

@@ -10,6 +10,7 @@ list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
 add_executable(nf-unit-tests
     test_decoder.cpp
     test_register_file.cpp
+    test_arch_state.cpp
     test_alu.cpp
     test_memory.cpp
     test_elf_loader.cpp

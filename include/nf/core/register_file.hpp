@@ -13,6 +13,8 @@ public:
 
     void Write(uint8_t rd, uint32_t val);
     uint32_t Read(uint8_t rs) const;
+
+    bool operator==(const RegisterFile &) const = default;
 private:
     std::vector<uint32_t> rf_;
 };
