@@ -19,11 +19,14 @@ class PipelineLatch {
     public:
         const T &Output() const { return q_; }      // use as this cycles input
         void    SetNext(T next) { d_ = std::move(next); }    // propagate from producer to consumer
+        void    SetNextBubble   { d_ T{}, next_valid = false; }
+        void    Hold()
         void    Commit() { q_ = std::move(d_); }      // clock edge d_ = q_
     
     private:
         T q_{};   // value served to consumers this cycle
         T d_{};   // value being produced this cycle
+
 };
 
 

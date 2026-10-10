@@ -16,7 +16,6 @@ namespace nf::pipeline {
 
     pipeline::Pipeline pipe;
 
-    // fe.Evaluate(pc, instr, fe_pl);
 
 
 
