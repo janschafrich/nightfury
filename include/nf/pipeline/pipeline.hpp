@@ -14,6 +14,7 @@ using nf::pipeline::PipelineLatch;
 
 class Pipeline {
     public:
+        Pipeline(uint32_t start_pc);
         void Tick();            // Evaluate IF..WB, then commit latches
         bool Halted() const;
     
@@ -29,6 +30,7 @@ class Pipeline {
         // pipeline::ExecuteStage                    ex_;
         // pipeline::MemoryStage                     mem_;
         // pipeline::WritebackStage                  wb_;
+        Redirect                                    redirect_{};
 };
 
 // evaluate each pipeline stage

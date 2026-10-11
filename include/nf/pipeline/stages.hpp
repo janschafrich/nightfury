@@ -14,45 +14,54 @@ using nf::pipeline::FetchPacket;
 
 class FetchStage {
     public:
+        bool Ready() const { return true; }       // nothing upstream, fetch is always ready
         void Evaluate (
             PipelineLatch<uint32_t>     &pc, 
             PipelineLatch<FetchPacket>  &if_id,
-            bool                        stall,
+            bool                        csm_ready,
+            const Redirect               &redirect,
             const mem::MemoryInterface  &mem
         );
 };
 
 class DecodeStage {
     public:
+        bool Ready() const { return true; }     // multi cycle EX will require RAW hazard handling
         void Evaluate (
-            const PipelineLatch<FetchPacket>  &if_id,
-            PipelineLatch<DecodePacket> &id_ex,
-            core::RegisterFile          &rf
+            const PipelineLatch<FetchPacket>    &if_id,
+            PipelineLatch<DecodePacket>         &id_ex,
+            bool                                csm_ready,
+            core::RegisterFile                  &rf
         );
 };
 
 class ExecuteStage {
     public:
+        bool Ready() const { return true; }
         void Evaluate (
-            const PipelineLatch<DecodePacket>  &id_ex,
-            PipelineLatch<ExecutePacket> &ex_mem
+            const PipelineLatch<DecodePacket>   &id_ex,
+            PipelineLatch<ExecutePacket>        &ex_mem,
+            bool                                csm_ready
         );
     };
     
 class MemoryStage {
     public:
-    void Evaluate (
-        const PipelineLatch<ExecutePacket> &ex_mem,
-        PipelineLatch<MemoryPacket>  &mem_wb
-    );
+        bool Ready() const { return true;} // replaced by future miss FSM
+        void Evaluate (
+            const PipelineLatch<ExecutePacket>  &ex_mem,
+            PipelineLatch<MemoryPacket>         &mem_wb,
+            bool                                csm_ready
+        );
 };
     
 class WritebackStage {
     public:
-    void Evaluate (
-        const PipelineLatch<MemoryPacket>  &mem_wb,
-        core::ArchState              &arch
-    );
+        bool Ready() const { return true; }
+        void Evaluate (
+            const PipelineLatch<MemoryPacket>   &mem_wb,
+            core::ArchState                     &arch
+        );
 };
 
 

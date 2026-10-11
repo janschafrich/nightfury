@@ -11,21 +11,22 @@ namespace nf::pipeline {
 DecodeStage::Evaluate(
     pipeline::PipelineLatch<FetchPacket>    &if_id,
     pipeline::PipelineLatch<DecodePacket>   &id_ex,
-    core::RegisterFile                      &rf
+    core::RegisterFile                      &rf,
+    bool                                    csm_ready
 ) {
 
     isa::Decoder decoder;
 
     inst_dec = decoder.Decode(if_id.raw_word);
 
-    id_ex = {
-        .pc = if_id.pc
-        .decoded_inst = inst_dec,
-        .rs1_val = 0,
-        .rs2_val = 0,
-        .valid = false
-    }
+    DecodePacket pkt;
+    pkt.pc = if_id.pc;
+    pkt.decoded_inst = inst_dec;
+    pkt.rs1_val = 0;    // rf read
+    pkt.rs2_val = 0;
+    pkt.valid = true;
 
+    id_ex.SetNext(pkt);
 }
 
 } // namespace

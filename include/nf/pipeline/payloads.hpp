@@ -21,17 +21,21 @@ enum class CsrKind : uint8_t { kNone, kWrite, kEcall };
 struct CsrPayload {
     uint32_t new_value = 0;         // meaningful for kWrite
     uint16_t addr = 0;              // 12 bit address space, meaningful for kWrite
-    CsrKind  kind = CsrKind::kNone;  // bubble, not a CSR commit
+    CsrKind  kind = CsrKind::kNone;  // not a CSR commit
 
     bool operator==(const CsrPayload &) const = default;
 
+};
+
+struct Redirect {
+    uint32_t pc = 0;
+    bool valid  = false;
 };
 
 
 struct FetchPacket {
     uint32_t pc;      
     uint32_t raw_word;
-    bool     valid = false;
 
     bool operator==(const FetchPacket&) const = default;
 };
@@ -41,7 +45,6 @@ struct DecodePacket {
     DecodedInstruction decoded_inst;
     uint32_t rs1_val;
     uint32_t rs2_val;
-    bool     valid = false;
 
     bool operator==(const DecodePacket&) const = default;
 };
@@ -59,7 +62,6 @@ struct ExecutePacket {
     bool        is_load;
     bool        is_store;
     bool        sign_extend;        // 0 unsigned, 1 signed
-    bool        valid = false;
     CsrPayload  csr;             // passthrough for wb stage
 
     bool operator==(const ExecutePacket&) const = default;
@@ -69,7 +71,6 @@ struct MemoryPacket {
     uint32_t    pc;
     uint32_t    wb_data;       // either ALU result or load data
     uint8_t     rd;            // if rd = 0 no write back needed
-    bool        valid = false;
     CsrPayload  csr;         // passthrough for wb stage
     
     bool operator==(const MemoryPacket&) const = default;
