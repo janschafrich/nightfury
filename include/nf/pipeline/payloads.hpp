@@ -14,7 +14,6 @@ using nf::isa::DecodedInstruction;
 // Packets define the outputs of the given state
 // Packets contain only what the downstream stage needs
 // They thereby define at which point in the pipeline a result is produced
-// Bubbles are represented by invalid packets.
 
 enum class CsrKind : uint8_t { kNone, kWrite, kEcall };
 
@@ -51,27 +50,25 @@ struct DecodePacket {
 
 struct ExecutePacket {
     uint32_t    pc;
-    uint32_t    rs1_val;           // passthrough for mem stage
-    uint32_t    rs2_val;           // passthrough for mem stage
-    uint32_t    alu_result;        // contains results from ALU ops, and target address
-    uint32_t    store_val;
-    uint32_t    pc_next;           // branch target or pc+4
-    uint8_t     rd;                // WB writes if rd != 0
-    ElementSize mem_size;
-    bool        is_control;        // jump or branch, ecall, mret
-    bool        is_load;
-    bool        is_store;
+    uint32_t    alu_result;         // contains results from ALU ops, target address or ld/st address
+    uint32_t    store_val;          // for mem stage
+    // uint32_t    pc_next;            // branch target or pc+4 TODO delete?
+    uint8_t     rd;                 // WB writes if rd != 0
+    ElementSize mem_size;           // for mem stage
+    bool        is_control;         // jump or branch, ecall, mret
+    bool        is_load;            // for mem stage
+    bool        is_store;           // for mem stage
     bool        sign_extend;        // 0 unsigned, 1 signed
-    CsrPayload  csr;             // passthrough for wb stage
+    CsrPayload  csr;                // for wb stage
 
     bool operator==(const ExecutePacket&) const = default;
 };
 
 struct MemoryPacket {
-    uint32_t    pc;
-    uint32_t    wb_data;       // either ALU result or load data
-    uint8_t     rd;            // if rd = 0 no write back needed
-    CsrPayload  csr;         // passthrough for wb stage
+    uint32_t    pc;             // TODO delete?
+    uint32_t    wb_data;        // either ALU result or load data
+    uint8_t     rd;             // if rd = 0 no write back needed
+    CsrPayload  csr;            // passthrough for wb stage
     
     bool operator==(const MemoryPacket&) const = default;
 };

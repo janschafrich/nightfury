@@ -11,14 +11,16 @@ namespace nf::pipeline {
 
 using nf::pipeline::PipelineLatch;
 using nf::pipeline::FetchPacket;
+using nf::pipeline::Redirect;
 
 class FetchStage {
     public:
         bool Ready() const { return true; }       // nothing upstream, fetch is always ready
         void Evaluate (
-            PipelineLatch<uint32_t>     &pc, 
+            const PipelineLatch<uint32_t>     &pc, 
             PipelineLatch<FetchPacket>  &if_id,
             const mem::MemoryInterface  &mem,
+            const Redirect              redirect,
             const bool                  csm_ready
         );
 };
@@ -29,18 +31,18 @@ class DecodeStage {
         void Evaluate (
             const PipelineLatch<FetchPacket>    &if_id,
             PipelineLatch<DecodePacket>         &id_ex,
-            bool                                csm_ready,
-            core::RegisterFile                  &rf
+            const core::RegisterFile            &regfile,
+            const bool                          csm_ready
         );
 };
 
 class ExecuteStage {
     public:
         bool Ready() const { return true; }
-        void Evaluate (
+        Redirect Evaluate (
             const PipelineLatch<DecodePacket>   &id_ex,
             PipelineLatch<ExecutePacket>        &ex_mem,
-            bool                                csm_ready
+            const bool                          csm_ready
         );
     };
     
@@ -50,16 +52,18 @@ class MemoryStage {
         void Evaluate (
             const PipelineLatch<ExecutePacket>  &ex_mem,
             PipelineLatch<MemoryPacket>         &mem_wb,
-            bool                                csm_ready
+            mem::MemoryInterface                &memory,
+            const bool                          csm_ready
         );
 };
     
 class WritebackStage {
     public:
         bool Ready() const { return true; }
-        void Evaluate (
+        Redirect Evaluate (
             const PipelineLatch<MemoryPacket>   &mem_wb,
-            core::ArchState                     &arch
+            core::RegisterFile                  &regfile,
+            core::CsrFile                       &csrs
         );
 };
 

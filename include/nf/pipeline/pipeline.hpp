@@ -31,10 +31,9 @@ class Pipeline {
 
         pipeline::FetchStage                      fe_;
         pipeline::DecodeStage                     de_;
-        // pipeline::ExecuteStage                    ex_;
-        // pipeline::MemoryStage                     mem_;
-        // pipeline::WritebackStage                  wb_;
-        Redirect                                  redirect_{};
+        pipeline::ExecuteStage                    ex_;
+        pipeline::MemoryStage                     mem_;
+        pipeline::WritebackStage                  wb_;
         mem::MemoryInterface                      &memory_;       // shared with interpreter
         core::RegisterFile                        &regfile_;      // shared with interpreter
         core::CsrFile                             &csrs_;         // shared with interpreter

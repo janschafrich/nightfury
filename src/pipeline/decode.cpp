@@ -9,24 +9,33 @@ namespace nf::pipeline {
     // decode instruction
     // read register file
 DecodeStage::Evaluate(
-    pipeline::PipelineLatch<FetchPacket>    &if_id,
-    pipeline::PipelineLatch<DecodePacket>   &id_ex,
-    core::RegisterFile                      &rf,
-    bool                                    csm_ready
+    const pipeline::PipelineLatch<FetchPacket>  &if_id,
+    pipeline::PipelineLatch<DecodePacket>       &id_ex,
+    const core::RegisterFile                    &regfile,
+    const bool                                  csm_ready
 ) {
+    if (!csm_ready) {
+        if_id.Stall();
+        return;
+    }
+
+    if (!if_id.Valid()) {
+        id_ex.SetNop();
+        return;
+    }
 
     isa::Decoder decoder;
-
     inst_dec = decoder.Decode(if_id.raw_word);
 
     DecodePacket pkt;
     pkt.pc = if_id.pc;
     pkt.decoded_inst = inst_dec;
-    pkt.rs1_val = 0;    // rf read
-    pkt.rs2_val = 0;
-    pkt.valid = true;
+    pkt.rs1_val = regfile.Read(inst_dec.rs1);
+    pkt.rs2_val = regfile.Read(inst_dec.rs1);
 
     id_ex.SetNext(pkt);
+
+    return;
 }
 
 } // namespace
