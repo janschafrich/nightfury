@@ -308,10 +308,19 @@ DecodedInstruction Decoder::Decode(uint32_t word) {
             switch (ins.funct3) {
                 case 0b000: {
                     const uint32_t imm12 = Bits(word, 31, 20);
-                    if (imm12 == 0x000) ins.mnemonic = Mnemonic::kEcall; ins.is_control = true;
-                    else if (imm12 == 0x001) ins.mnemonic = Mnemonic::kEbreak; ins.is_control = true;
-                    else if (imm12 == 0x302) ins.mnemonic = Mnemonic::kMret; ins.is_control = true;
-                    break;
+                    if (imm12 == 0x000) {
+                        ins.mnemonic = Mnemonic::kEcall; 
+                        ins.is_control = true;
+                    }
+                    else if (imm12 == 0x001) {
+                        ins.mnemonic = Mnemonic::kEbreak; 
+                        ins.is_control = true;
+                    }
+                    else if (imm12 == 0x302) {
+                        ins.mnemonic = Mnemonic::kMret; 
+                        ins.is_control = true;
+                    }
+                        break;
                 }
                 case 0b001: ins.mnemonic = Mnemonic::kCsrrw;  ins.imm = ImmCsr(word); break;
                 case 0b010: ins.mnemonic = Mnemonic::kCsrrs;  ins.imm = ImmCsr(word); break;
