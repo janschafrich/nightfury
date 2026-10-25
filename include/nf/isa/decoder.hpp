@@ -47,7 +47,7 @@ struct DecodedInstruction {
     uint8_t rs2 = 0;
     uint8_t funct3 = 0;
     uint8_t funct7 = 0;
-    bool    sign_extend = 0;
+    bool    sign_extend = false;
     Format format = Format::kInvalid;
     Mnemonic mnemonic = Mnemonic::kInvalid;
 
@@ -56,6 +56,9 @@ struct DecodedInstruction {
     mem::ElementSize mem_size = mem::ElementSize::kWord;
 
     bool Valid() const { return mnemonic != Mnemonic::kInvalid; }
+    bool is_control = false;
+    bool is_load = false;
+    bool is_store = false;
 };
 
 class Decoder {

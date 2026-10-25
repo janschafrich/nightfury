@@ -149,18 +149,21 @@ DecodedInstruction Decoder::Decode(uint32_t word) {
         case kOpJal:
             ins.format = Format::kJ;
             ins.mnemonic = Mnemonic::kJal;
+            ins.is_control = true;
             ins.imm = ImmJ(word);
             break;
 
         case kOpJalr:
             ins.format = Format::kI;
             ins.imm = ImmI(word);
+            ins.is_control = true;
             if (ins.funct3 == 0b000) ins.mnemonic = Mnemonic::kJalr;
             break;
 
         case kOpBranch:
             ins.format = Format::kB;
             ins.imm = ImmB(word);
+            ins.is_control = true;
             switch (ins.funct3) {
                 case 0b000: ins.mnemonic = Mnemonic::kBeq; break;
                 case 0b001: ins.mnemonic = Mnemonic::kBne; break;
@@ -175,6 +178,7 @@ DecodedInstruction Decoder::Decode(uint32_t word) {
         case kOpLoad:
             ins.format = Format::kI;
             ins.imm = ImmI(word);
+            ins.is_load = true;
             switch (ins.funct3) {
                 case 0b000:
                     ins.mnemonic = Mnemonic::kLb;
@@ -205,6 +209,7 @@ DecodedInstruction Decoder::Decode(uint32_t word) {
         case kOpStore:
             ins.format = Format::kS;
             ins.imm = ImmS(word);
+            ins.is_store = true;
             switch (ins.funct3) {
                 case 0b000:
                     ins.mnemonic = Mnemonic::kSb;
@@ -303,9 +308,9 @@ DecodedInstruction Decoder::Decode(uint32_t word) {
             switch (ins.funct3) {
                 case 0b000: {
                     const uint32_t imm12 = Bits(word, 31, 20);
-                    if (imm12 == 0x000) ins.mnemonic = Mnemonic::kEcall;
-                    else if (imm12 == 0x001) ins.mnemonic = Mnemonic::kEbreak;
-                    else if (imm12 == 0x302) ins.mnemonic = Mnemonic::kMret;
+                    if (imm12 == 0x000) ins.mnemonic = Mnemonic::kEcall; ins.is_control = true;
+                    else if (imm12 == 0x001) ins.mnemonic = Mnemonic::kEbreak; ins.is_control = true;
+                    else if (imm12 == 0x302) ins.mnemonic = Mnemonic::kMret; ins.is_control = true;
                     break;
                 }
                 case 0b001: ins.mnemonic = Mnemonic::kCsrrw;  ins.imm = ImmCsr(word); break;
