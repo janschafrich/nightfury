@@ -23,7 +23,7 @@ Graduate computer engineer, working as a Formal Verification Engineer on Arm app
 Nightfury: a cycle-accurate RV32IM CPU microarchitecture simulator (5-stage in-order scalar pipeline). C++23 core writes a trace file; Python (`python/nfanalysis`) reads and analyzes it. No branch prediction, no caches yet.
 
 - Milestones: see README.md
-- Design decisions and rationale: see docs/design/decision.md
+- Design decisions and rationale: see docs/design/decisions.md
 
 # Current status
 
@@ -63,7 +63,7 @@ The compliance script defaults to `build/bin/nf-functional` and `$HOME/software/
 - C++23, Google style guide (https://google.github.io/styleguide/cppguide.html), including PascalCase method names (`Compute`, `Decode`, `Valid`)
 - Headers live in `include/nf/`, mirroring `src/` directory structure
 - Every module gets a matching unit test in `tests/unit`
-- Record non-obvious design decisions and rationale in `docs/design/decision.md`
+- Record non-obvious design decisions and rationale in `docs/design/decisions.md`
 - Keep memory and ISA decoupled per existing decisions in that file
 
 # Workflow rules

@@ -110,6 +110,12 @@ This is loosely inspired by a Master/Slave latch pair from which registers are s
 Evaluate serves as the level for the first (master) latch. 
 Commit as the level for the second (slave) latch.
 
+## Squash Semantics
+
+Model: RTL synchronous-clear input on the pipeline register; priority chain fixed by construction, resolved once at Advance.
+Contrast: P&H hazard unit flushes the clear inputs of IF/ID/ID/EX registers; gem5 TimeBuffer has no squash input — O3CPU squashes at stage level; ChampSim clears queues instead. Latch-level squash is the choice consistent with the two-phase-tick-as-clock philosophy.
+Rationale for silent squash-wins: the producer's D input is irrelevant under clear, exactly as in the mux; ordering analysis shows Set-after-Squash can't arise from interstage interactions in IF→WB order, so absorbing it silently costs nothing and buys misuse determinism.
+
 
 
 
