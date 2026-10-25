@@ -9,48 +9,48 @@ using nf::pipeline::DecodePacket;
 using nf::pipeline::ExecutePacket;
 using nf::pipeline::MemoryPacket;
 
-TEST_CASE("Latch hides next value till Commit") {
-    FetchPacket first  {.pc = 0x1000, .raw_word = 0x00000013, .valid=true};
-    FetchPacket second {.pc = 0x1004, .raw_word = 0x00000013, .valid=true};
+TEST_CASE("Latch hides next value till Advance") {
+    FetchPacket first  {.pc = 0x1000, .raw_word = 0x00000013};
+    FetchPacket second {.pc = 0x1004, .raw_word = 0x00000013};
 
     PipelineLatch<FetchPacket> latch;
 
-    // New value is not visible before Commit
-    latch.SetNext(first);   // propagate
-    CHECK(!latch.Output().valid);
+    // New value is not visible before Advance
+    latch.Set(first);   // propagate
+    CHECK(!latch.Valid());
     
-    // New fetch packet is visible after commit
-    latch.Commit(); // clock edge
-    CHECK(latch.Output().valid);
+    // New fetch packet is visible after Advance
+    latch.Advance(); // clock edge
+    CHECK(latch.Valid());
 
     // Producer wrote new q_ (next cycle), consumer still sees d_ of this cycle
-    latch.SetNext(second);
-    CHECK(latch.Output() == first);
+    latch.Set(second);
+    CHECK(latch.Q() == first);
 
-    latch.Commit();
-    CHECK(latch.Output() == second);
+    latch.Advance();
+    CHECK(latch.Q() == second);
 }
 
 TEST_CASE("Fresh latch holds a bubble") {
     PipelineLatch<FetchPacket> latch;
-    CHECK(!latch.Output().valid);
+    CHECK(!latch.Valid());
 }
 
-TEST_CASE("Back to back commits one value per cycle") {
-    FetchPacket first  {.pc = 0x1000, .raw_word = 0x00000013, .valid=true};
-    FetchPacket second {.pc = 0x1004, .raw_word = 0x00000013, .valid=true};
+TEST_CASE("Back to back Advances one value per cycle") {
+    FetchPacket first  {.pc = 0x1000, .raw_word = 0x00000013};
+    FetchPacket second {.pc = 0x1004, .raw_word = 0x00000013};
     
     PipelineLatch<FetchPacket> latch;
 
-    latch.SetNext(first);
-    latch.Commit();
-    CHECK(latch.Output().pc == 0x1000);
+    latch.Set(first);
+    latch.Advance();
+    CHECK(latch.Q().pc == 0x1000);
     
-    latch.SetNext(second);
-    latch.Commit();
-    CHECK(latch.Output().pc == 0x1004);
-    latch.Commit();
-    CHECK(latch.Output().pc == 0x1004);
+    latch.Set(second);
+    latch.Advance();
+    CHECK(latch.Q().pc == 0x1004);
+    latch.Advance();
+    CHECK(latch.Q().pc == 0x1004);
 
 }
 
@@ -65,9 +65,9 @@ TEST_CASE("All packet types are latch compatible") {
     PipelineLatch<ExecutePacket>    latch_ex;
     PipelineLatch<MemoryPacket>     latch_mem;
 
-    CHECK(!latch_fe.Output().valid);
-    CHECK(!latch_de.Output().valid);
-    CHECK(!latch_ex.Output().valid);
-    CHECK(!latch_mem.Output().valid);
+    CHECK(!latch_fe.Valid());
+    CHECK(!latch_de.Valid());
+    CHECK(!latch_ex.Valid());
+    CHECK(!latch_mem.Valid());
 
 }

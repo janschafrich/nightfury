@@ -18,9 +18,8 @@ class FetchStage {
         void Evaluate (
             PipelineLatch<uint32_t>     &pc, 
             PipelineLatch<FetchPacket>  &if_id,
-            bool                        csm_ready,
-            const Redirect               &redirect,
-            const mem::MemoryInterface  &mem
+            const mem::MemoryInterface  &mem,
+            const bool                  csm_ready
         );
 };
 

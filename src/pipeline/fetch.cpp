@@ -20,31 +20,30 @@ using nf::mem::ElementSize;
 void FetchStage::Evaluate(
     PipelineLatch<uint32_t>     &pc, 
     PipelineLatch<FetchPacket>  &if_id,
-    bool                        csm_ready,  // back pressure
-    const Redirect              &redirect, 
-    mem::MemoryInterface        &mem 
+    const mem::MemoryInterface  &mem, 
+    const bool                  csm_ready  // back pressure
 ) {
-    assert(pc.IsValid());
+    assert(pc.Valid());
 
     if (!csm_ready) {
-        pc.SetHold();
-        if_id.SetHold();
+        pc.Stall();
+        // if_id.Stall();          // why would we stall the consumer?
         return;
     }
     
     // construct fetch packet
     FetchPacket pkt;
-    pkt.pc          = pc.Output();
-    pkt.raw_word    = mem.Load(ElementSize::kWord, pc.Output());
+    pkt.pc          = pc.Q();
+    pkt.raw_word    = mem.Load(ElementSize::kWord, pc.Q());
 
     
-    if (redirect.valid) {
-        pc.SetNext(redirect.pc);
+    if (redirect_.valid) {
+        pc.Set(redirect_.pc);
     } else {
-        pc.SetNext(pc.Output() + 4);      
+        pc.Set(pc.Q() + 4);      
     }    
     
-    if_id.SetNext(pkt);
+    if_id.Set(pkt);
 }
 
 }

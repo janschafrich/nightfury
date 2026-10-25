@@ -14,7 +14,11 @@ using nf::pipeline::PipelineLatch;
 
 class Pipeline {
     public:
-        Pipeline(uint32_t start_pc);
+        Pipeline(
+            mem::MemoryInterface &memory,
+            core::ArchState &arch,
+            uint32_t start_pc, 
+            uint32_t tohost_addr);
         void Tick();            // Evaluate IF..WB, then commit latches
         bool Halted() const;
     
@@ -26,12 +30,16 @@ class Pipeline {
         PipelineLatch<pipeline::MemoryPacket>     mem_wb_;
 
         pipeline::FetchStage                      fe_;
-        // pipeline::DecodeStage                     de_;
+        pipeline::DecodeStage                     de_;
         // pipeline::ExecuteStage                    ex_;
         // pipeline::MemoryStage                     mem_;
         // pipeline::WritebackStage                  wb_;
-        Redirect                                    redirect_{};
-};
+        Redirect                                  redirect_{};
+        mem::MemoryInterface                      &memory_;       // shared with interpreter
+        core::RegisterFile                        &regfile_;      // shared with interpreter
+        core::CsrFile                             &csrs_;         // shared with interpreter
+        uint32_t                                  tohost_addr_;
+    };
 
 // evaluate each pipeline stage
 // commit the result for each pipeline stage
