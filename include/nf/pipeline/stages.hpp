@@ -17,7 +17,7 @@ class FetchStage {
     public:
         bool Ready() const { return true; }       // nothing upstream, fetch is always ready
         void Evaluate (
-            const PipelineLatch<uint32_t>     &pc, 
+            PipelineLatch<uint32_t>     &pc,        
             PipelineLatch<FetchPacket>  &if_id,
             const mem::MemoryInterface  &mem,
             const Redirect              redirect,
@@ -29,10 +29,10 @@ class DecodeStage {
     public:
         bool Ready() const { return true; }     // multi cycle EX will require RAW hazard handling
         void Evaluate (
-            const PipelineLatch<FetchPacket>    &if_id,
-            PipelineLatch<DecodePacket>         &id_ex,
-            const core::RegisterFile            &regfile,
-            const bool                          csm_ready
+            PipelineLatch<FetchPacket>    &if_id,
+            PipelineLatch<DecodePacket>   &id_ex,
+            const core::RegisterFile      &regfile,
+            const bool                    csm_ready
         );
 };
 
@@ -40,9 +40,9 @@ class ExecuteStage {
     public:
         bool Ready() const { return true; }
         Redirect Evaluate (
-            const PipelineLatch<DecodePacket>   &id_ex,
-            PipelineLatch<ExecutePacket>        &ex_mem,
-            const bool                          csm_ready
+            PipelineLatch<DecodePacket>     &id_ex,
+            PipelineLatch<ExecutePacket>    &ex_mem,
+            const bool                      csm_ready
         );
     };
     
@@ -50,10 +50,10 @@ class MemoryStage {
     public:
         bool Ready() const { return true;} // replaced by future miss FSM
         void Evaluate (
-            const PipelineLatch<ExecutePacket>  &ex_mem,
-            PipelineLatch<MemoryPacket>         &mem_wb,
-            mem::MemoryInterface                &memory,
-            const bool                          csm_ready
+            PipelineLatch<ExecutePacket>   &ex_mem,
+            PipelineLatch<MemoryPacket>    &mem_wb,
+            mem::MemoryInterface           &memory,
+            const bool                     csm_ready
         );
 };
     
@@ -61,9 +61,9 @@ class WritebackStage {
     public:
         bool Ready() const { return true; }
         Redirect Evaluate (
-            const PipelineLatch<MemoryPacket>   &mem_wb,
-            core::RegisterFile                  &regfile,
-            core::CsrFile                       &csrs
+            PipelineLatch<MemoryPacket>   &mem_wb,
+            core::RegisterFile            &regfile,
+            core::CsrFile                 &csrs
         );
 };
 
