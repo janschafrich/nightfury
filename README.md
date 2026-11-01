@@ -26,8 +26,8 @@ Requirements:
 
 ## Working On
 
-2. Bolt on the 5-stage pipeline _assuming no hazards_ (just get the plumbing/registers-between-stages right)
-- handle hazards (control, data) via stalls (no forwarding)
+2. CSR handling throughout the pipeline
+- unit tests for pipeline, especially redirection due to branch an ECalls
 
 ## Remaining
 

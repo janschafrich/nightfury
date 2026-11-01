@@ -35,6 +35,7 @@ Simulator::Simulator(const std::string &elf_path, uint32_t mem_base_addr, size_t
     : memory_(mem_base_addr, mem_size_bytes),
       image_(RequireLoad(elf_path, memory_)),
       interpreter_(memory_, arch_, image_.entry_pc, *image_.tohost_addr),
+      pipeline_(memory_, arch_, image_.entry_pc, *image_.tohost_addr),
       tohost_addr_(*image_.tohost_addr) {}  // constructor body is empty
 
 SimResult Simulator::Run() {

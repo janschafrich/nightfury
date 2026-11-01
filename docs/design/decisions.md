@@ -1,24 +1,26 @@
-# Register File
+# Functional (Untimed) Model
+
+## Register File
 
 - use class to model state
 - use read and write methods to ease adding timing information later
 - skip out of bounds access handling since the decoder guarantess that rs1, rs2, rd will always be in the range [0:31].
 
 
-# ALU
+## ALU
 
 - implement as pure function to avoid any state
 - treat it like combinational logic
 - convert from ArchOps to AluOps to take advantage off similarity of immediate and non-immediate operations (ADDI, ADD)
 
 
-# Memory
+## Memory
 
 - keep memory dumb: it just moves bytes, independent of ISA
 - sign extension is handled at caller (interpreter)
 
 
-# Decoder
+## Decoder
 
 - Eager decode: to prevent decode and pipeline logic from drifting apart, everything needed later is derived at decode and then frozen
 - Exceptions to the rule:
@@ -29,7 +31,7 @@
 - Hardware goes for lazy decoding to save on area (wiring): each stage only decodes the information it needs, the rest travels encoded down the pipe
 
 
-# Loader
+## Loader
 
 - check executable (elf magic word, executable type, riscv isa)
 - extract symbols from riscv-test suite instead of hard coding them
@@ -84,7 +86,7 @@ Options:
 Chose 1., single pipeline config, the simulator is not intended to grow very complex, so single, nested struct for all latencies, instead of per module config structs should be fine.
 
 
-# Simulation Engine
+## Simulation Engine
 
 1. Plain cycle loop: jump from cycle to cycle
 2. Event driven: jump from event to event, allows to skip cycles. Interesting when modeling sytems with Caches, dozens of IO devices, DVFS
@@ -92,17 +94,17 @@ Chose 1., single pipeline config, the simulator is not intended to grow very com
 Chose 1, as I want to learn micro-architectural modeling and not simulation infrastructure
 
 
-# Pipeline Location
+## Pipeline Location
 
 - registers are read in ID stage
 - outcome and target is determined in EX stage
 - when evaluated a halt, execution stops and pipeline contents are discarded 
 
 
-# Control Hazard Resolution
+## Control Hazard Resolution
 - stall: IF inserts pipeline bubbles, by generates non-valid packets 
 
-# Pipeline Latches
+## Pipeline Latches
 
 The current execution state of an instruction is passed between pipeline stages by an Evaluate and Commit pair.
 This evaluate-commit pair provides the generic interface thats applicable to all producer consumer stage pairs. 
@@ -115,6 +117,30 @@ Commit as the level for the second (slave) latch.
 Model: RTL synchronous-clear input on the pipeline register; priority chain fixed by construction, resolved once at Advance.
 Contrast: P&H hazard unit flushes the clear inputs of IF/ID/ID/EX registers; gem5 TimeBuffer has no squash input — O3CPU squashes at stage level; ChampSim clears queues instead. Latch-level squash is the choice consistent with the two-phase-tick-as-clock philosophy.
 Rationale for silent squash-wins: the producer's D input is irrelevant under clear, exactly as in the mux; ordering analysis shows Set-after-Squash can't arise from interstage interactions in IF→WB order, so absorbing it silently costs nothing and buys misuse determinism.
+
+## Redirection
+
+- branches redirect early in EX stage
+- ecalls, mret return in WB, have higher priority (older instructions)
+
+
+## System Instructions
+
+This simulator supports the bare minium of system instruction to be able to run riscv-tests. 
+
+An instruction must only update the architectural state, once it is guaranteed to retire, i.e. the oldest instruction in the machine. This point is reached naturally in writeback stage.
+
+To simplify precise exceptions, all system instruction effects (write of CSR, redirect) occur in writeback stage. 
+
+### mret, ecall, ebreak
+
+The machine return (mret) instruction writes mepc, mcause, mstatus and jump to mepc.
+The environment call (ecall) instruction writes mcause, jump to mtvec.
+The environment break (ebreak) instruction write mcause, jump to mtvec.
+
+For simplicity reasons, this simulator does not implement the mcause and mstatus registers at the moment.
+Nightfury does not simulate writes to these registers.
+
 
 
 

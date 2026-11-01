@@ -9,12 +9,14 @@
 #include "nf/core/arch_state.hpp"
 #include "nf/loader/elf_loader.hpp"
 #include "nf/mem/memory.hpp"
+#include "nf/pipeline/pipeline.hpp"
 
 namespace nf::sim {
 
 using nf::mem::Memory;
 using nf::core::Interpreter;
 using nf::loader::ElfImage;
+using nf::pipeline::Pipeline;
 
 // Outcome of running to completion. riscv-tests' write_tohost convention
 // (env/p/riscv_test.h) encodes pass as 1 and fail as (test_number << 1) | 1
@@ -47,6 +49,7 @@ private:
     core::ArchState arch_;
     ElfImage image_;            // needs memory_
     Interpreter interpreter_;   // needs memory_ + arch_ + image_
+    Pipeline    pipeline_;
     uint32_t tohost_addr_;
     // future pipeline?
 

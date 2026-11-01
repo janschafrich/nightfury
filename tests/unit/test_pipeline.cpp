@@ -71,3 +71,22 @@ TEST_CASE("All packet types are latch compatible") {
     CHECK(!latch_mem.Valid());
 
 }
+
+
+TEST_CASE("Redirect of older instruction wins") {
+    FetchPacket   fetch;
+    DecodePacket  decode;
+    ExecutePacket execute;
+    MemoryPacket  memory;
+
+    PipelineLatch<FetchPacket>      latch_fe;
+    PipelineLatch<DecodePacket>     latch_de;
+    PipelineLatch<ExecutePacket>    latch_ex;
+    PipelineLatch<MemoryPacket>     latch_mem;
+
+    CHECK(!latch_fe.Valid());
+    CHECK(!latch_de.Valid());
+    CHECK(!latch_ex.Valid());
+    CHECK(!latch_mem.Valid());
+
+}

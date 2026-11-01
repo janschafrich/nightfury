@@ -23,12 +23,12 @@ constexpr uint32_t kCauseMachineEcall = 0xb;
 class CsrFile {
 public:
     uint32_t Read(uint16_t addr) const;
-    void Write(uint16_t addr, uint32_t val);
+    void     Write(uint16_t addr, uint32_t val);
 
     uint32_t mtvec() const { return mtvec_; }
     uint32_t mepc() const { return mepc_; }
-    void set_mepc(uint32_t val) { mepc_ = val; }
-    void set_mcause(uint32_t val) { mcause_ = val; }
+    void     set_mepc(uint32_t val) { mepc_ = val; }
+    void     set_mcause(uint32_t val) { mcause_ = val; }
 
     bool operator== (const CsrFile &) const = default;
 

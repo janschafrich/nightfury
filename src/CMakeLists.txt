@@ -5,6 +5,11 @@ add_library(nf-core STATIC
     core/csr_file.cpp
     core/alu.cpp
     pipeline/pipeline.cpp
+    pipeline/fetch.cpp
+    pipeline/decode.cpp
+    pipeline/execute.cpp
+    pipeline/memory.cpp
+    pipeline/writeback.cpp
     mem/memory.cpp
     loader/elf_loader.cpp
     sim/simulator.cpp

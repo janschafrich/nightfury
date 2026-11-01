@@ -18,10 +18,10 @@ using nf::pipeline::PipelineLatch;
 using nf::mem::ElementSize;
 
 void FetchStage::Evaluate(
-    const PipelineLatch<uint32_t>   &pc, 
+    PipelineLatch<uint32_t>   &pc, 
     PipelineLatch<FetchPacket>      &if_id,
     const mem::MemoryInterface      &mem, 
-    const Redirect                  &redirect,
+    const Redirect                  redirect,
     const bool                      csm_ready  // back pressure
 ) {
     assert(pc.Valid());

@@ -309,14 +309,17 @@ DecodedInstruction Decoder::Decode(uint32_t word) {
                 case 0b000: {
                     const uint32_t imm12 = Bits(word, 31, 20);
                     if (imm12 == 0x000) {
+                        // Environment call, from lower privilege level to higher privilege level
                         ins.mnemonic = Mnemonic::kEcall; 
                         ins.is_control = true;
                     }
                     else if (imm12 == 0x001) {
+                        // Transfer control to debugging environment
                         ins.mnemonic = Mnemonic::kEbreak; 
                         ins.is_control = true;
                     }
                     else if (imm12 == 0x302) {
+                        // Machine trap return 
                         ins.mnemonic = Mnemonic::kMret; 
                         ins.is_control = true;
                     }

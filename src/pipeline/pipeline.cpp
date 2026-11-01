@@ -1,13 +1,24 @@
-#include "nf/pipeline/pipeline.hpp"
 #include "nf/pipeline/latch.hpp"
 #include "nf/pipeline/stages.hpp"
+#include "nf/pipeline/pipeline.hpp"
 
 namespace nf::pipeline {
 
+using nf::isa::Mnemonic;
+using nf::pipeline::WbAction;
 
 // using nf::pipeline::PipelineLatch;
 // using nf::pipeline::FetchStage;
 // using nf::pipeline::FetchPacket;
+
+WbAction ToWbAction (nf::isa::Mnemonic m) {
+    switch (m) {
+        case(Mnemonic::kEcall):     return WbAction::kEcall; 
+        case(Mnemonic::kEbreak):    return WbAction::kEbreak; 
+        case(Mnemonic::kMret):      return WbAction::kMret;
+        default:                    return WbAction::kNone; 
+    }
+}
 
 // owns the 
 // - stages
@@ -54,15 +65,16 @@ void Pipeline::Tick() {
 
     de_.Evaluate(if_id_, id_ex_, regfile_, ex_ready);
     
+    // PC Mux
     const Redirect redirect = wb_redir.valid ? wb_redir : ex_redir; // older instruction has prio
     fe_.Evaluate(pc_, if_id_, memory_, redirect, de_ready);
     
     // 3. Advance - register the new values for the next cycle
-    // pc_.Advance();
-    // if_id_.Advance();
-    // id_ex_.Advance();
-    // ex_mem_.Advance();
-    // mem_wb_.Advance();
+    pc_.Advance();
+    if_id_.Advance();
+    id_ex_.Advance();
+    ex_mem_.Advance();
+    mem_wb_.Advance();
 }
 
 

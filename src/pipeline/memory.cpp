@@ -7,11 +7,11 @@ namespace nf::pipeline {
     // load store
     // wb mux
     // halt detect
-Memory::Evaluate(
-    const PipelineLatch<ExecutePacket>  &ex_mem,
-    PipelineLatch<MemoryPacket>         &mem_wb,
-    mem::MemoryInterface                &memory,
-    const bool                          csm_ready
+void MemoryStage::Evaluate(
+    PipelineLatch<ExecutePacket>  &ex_mem,
+    PipelineLatch<MemoryPacket>   &mem_wb,
+    mem::MemoryInterface          &memory,
+    const bool                    csm_ready
 ){
     if (!csm_ready) {
         ex_mem.Stall();
@@ -25,28 +25,28 @@ Memory::Evaluate(
     
     MemoryPacket pkt;
 
-    if (ex_mem.is_load) {
-        pkt.pc      = ex_mem.pc;
-        pkt.wb_data = memory.Load(ex_mem.mem_size, ex_mem.alu_result);
-        pkt.rd      = ex_mem.rd;
-        pkt.csr     = ex_mem.csr;
+    if (ex_mem.Q().is_load) {
+        pkt.pc      = ex_mem.Q().pc;
+        pkt.wb_data = memory.Load(ex_mem.Q().mem_size, ex_mem.Q().alu_result);
+        pkt.rd      = ex_mem.Q().rd;
+        pkt.csr     = ex_mem.Q().csr;
     }
-    else if (ex_mem.is_store) {
-        memory.Store(ex_mem.mem_size, ex_mem.alu_result, ex_mem.store_val);
+    else if (ex_mem.Q().is_store) {
+        memory.Store(ex_mem.Q().mem_size, ex_mem.Q().alu_result, ex_mem.Q().store_val);
 
-        pkt.pc      = ex_mem.pc;
+        pkt.pc      = ex_mem.Q().pc;
         pkt.wb_data = 0;
         pkt.rd      = 0;
-        pkt.csr     = ex_mem.csr;
+        pkt.csr     = ex_mem.Q().csr;
     }
     else {
-        pkt.pc      = ex_mem.pc;
-        pkt.wb_data = ex_mem.alu_result;
-        pkt.rd      = ex_mem.rd;
-        pkt.csr     = ex_mem.csr;
+        pkt.pc      = ex_mem.Q().pc;
+        pkt.wb_data = ex_mem.Q().alu_result;
+        pkt.rd      = ex_mem.Q().rd;
+        pkt.csr     = ex_mem.Q().csr;
     }
 
-    mem_wb.SetNext(pkt);
+    mem_wb.Set(pkt);
     
     return;
 }
