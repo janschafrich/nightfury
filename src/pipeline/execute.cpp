@@ -61,7 +61,6 @@ Redirect ExecuteStage::Evaluate(
     pkt.pc          = id_ex.Q().pc;
     pkt.alu_result  = alu_result;
     pkt.store_val   = id_ex.Q().rs2_val;    // RISCV spec 2.6
-    // pkt.pc_next     = pc_next;
     pkt.rd          = inst.rd;
     pkt.mem_size    = inst.mem_size;
     pkt.is_control  = inst.is_control;     

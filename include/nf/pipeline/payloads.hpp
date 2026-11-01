@@ -53,7 +53,6 @@ struct ExecutePacket {
     uint32_t    pc;
     uint32_t    alu_result;         // contains results from ALU ops, target address or ld/st address
     uint32_t    store_val;          // for mem stage
-    // uint32_t    pc_next;            // branch target or pc+4 TODO delete?
     uint8_t     rd;                 // WB writes if rd != 0
     ElementSize mem_size;           // for mem stage
     bool        is_control;         // jump or branch, ecall, mret
