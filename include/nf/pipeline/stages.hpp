@@ -54,7 +54,8 @@ class MemoryStage {
             PipelineLatch<ExecutePacket>   &ex_mem,
             PipelineLatch<MemoryPacket>    &mem_wb,
             mem::MemoryInterface           &memory,
-            const bool                     csm_ready
+            const bool                     csm_ready,
+            const uint32_t                 tohost_addr
         );
 };
     

@@ -69,7 +69,7 @@ struct MemoryPacket {
     uint32_t    wb_data;        // either ALU result or load data
     uint8_t     rd;             // if rd = 0 no write back needed
     CsrPayload  csr;            // passthrough for wb stage
-    
+    bool        halt = false;   // Halt simulation, e.g. on detection of store to to_host
     bool operator==(const MemoryPacket&) const = default;
 };
 

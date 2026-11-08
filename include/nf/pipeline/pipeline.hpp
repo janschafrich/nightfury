@@ -3,6 +3,7 @@
 
 #include "nf/pipeline/stages.hpp"
 #include "nf/core/arch_state.hpp"
+#include "nf/core/step_result.hpp"
 #include "nf/pipeline/payloads.hpp"
 
 
@@ -24,7 +25,7 @@ class Pipeline {
         nf::core::ArchState &arch,
         uint32_t start_pc, 
         uint32_t tohost_addr);
-        void Tick();            // Evaluate IF..WB, then commit latches
+        nf::core::StepResult Tick();            // Evaluate IF..WB, then commit latches
         bool Halted() const;
     
     private:

@@ -38,7 +38,7 @@ Simulator::Simulator(const std::string &elf_path, uint32_t mem_base_addr, size_t
       pipeline_(memory_, arch_, image_.entry_pc, *image_.tohost_addr),
       tohost_addr_(*image_.tohost_addr) {}  // constructor body is empty
 
-SimResult Simulator::Run() {
+SimResult Simulator::RunFunctional() {
     StepResult result;
     do {
         result = interpreter_.ProcessInstruction();
@@ -51,5 +51,21 @@ SimResult Simulator::Run() {
         .tohost_value   = tohost_value
     };
 }
+
+SimResult Simulator::RunPipeline() {
+    StepResult result;
+    do {
+        result = pipeline_.Tick();
+    } while (result != StepResult::kHalted);
+
+    const uint32_t tohost_value = memory_.Load(ElementSize::kWord, tohost_addr_);
+
+    return SimResult{
+        .passed         = (tohost_value == 1),
+        .tohost_value   = tohost_value
+    };
+}
+
+
 
 }  // namespace nf::sim

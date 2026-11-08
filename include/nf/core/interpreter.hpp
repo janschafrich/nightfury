@@ -8,12 +8,11 @@
 #include "nf/core/csr_file.hpp"
 #include "nf/core/arch_state.hpp"
 #include "nf/core/alu.hpp"
+#include "nf/core/step_result.hpp"
 #include "nf/mem/memory.hpp"
 
 
 namespace nf::core {
-
-enum class StepResult {kOk, kHalted};
 
 class Interpreter {
 public:

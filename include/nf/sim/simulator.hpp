@@ -38,7 +38,8 @@ public:
     // riscv-tests-style binaries, and the interpreter's halt detection
     // (interpreter.cpp) needs a concrete address to compare stores against.
     Simulator(const std::string &elf_path, uint32_t mem_base_addr, size_t mem_size_bytes);
-    SimResult Run();
+    SimResult RunFunctional();  // instruction level
+    SimResult RunPipeline();    // cycle level
     static std::string_view Version();
 
 private:
@@ -51,7 +52,6 @@ private:
     Interpreter interpreter_;   // needs memory_ + arch_ + image_
     Pipeline    pipeline_;
     uint32_t tohost_addr_;
-    // future pipeline?
 
 };
 

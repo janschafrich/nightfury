@@ -15,7 +15,7 @@ int main(int argc, char *argv[]) {
     try {
         // user supplied arguments start at 1, not 0
         nf::sim::Simulator sim(argv[1], kMemBase, kMemSize);
-        nf::sim::SimResult result = sim.Run();
+        nf::sim::SimResult result = sim.RunPipeline();
         if (result.passed) {
             std::cout << "PASS \n";
             return 0;

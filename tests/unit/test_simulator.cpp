@@ -137,7 +137,7 @@ TEST_CASE("Simulator runs a program to a passing tohost store", "[simulator]") {
     const auto path = WriteTempElf(bytes, "nf_test_simulator_pass.elf");
 
     Simulator sim(path, kBase, 0x2000);
-    const auto result = sim.Run();
+    const auto result = sim.RunFunctional();
 
     CHECK(result.passed);
     CHECK(result.tohost_value == 1u);
@@ -154,7 +154,7 @@ TEST_CASE("Simulator reports failure and the failing test number from tohost", "
     const auto path = WriteTempElf(bytes, "nf_test_simulator_fail.elf");
 
     Simulator sim(path, kBase, 0x2000);
-    const auto result = sim.Run();
+    const auto result = sim.RunFunctional();
 
     CHECK_FALSE(result.passed);
     CHECK((result.tohost_value >> 1) == kFailingTestNumber);

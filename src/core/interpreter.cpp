@@ -5,6 +5,7 @@
 #include "nf/core/arch_state.hpp"
 #include "nf/core/alu.hpp"
 #include "nf/core/csr_update.hpp"
+#include "nf/core/step_result.hpp"
 
 namespace nf::core {
 

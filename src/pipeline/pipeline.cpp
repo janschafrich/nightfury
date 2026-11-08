@@ -1,6 +1,7 @@
 #include "nf/pipeline/latch.hpp"
 #include "nf/pipeline/stages.hpp"
 #include "nf/pipeline/pipeline.hpp"
+#include "nf/core/step_result.hpp"
 
 namespace nf::pipeline {
 
@@ -42,7 +43,7 @@ Pipeline::Pipeline( mem::MemoryInterface &memory,
     pc_.Advance();
 }
 
-void Pipeline::Tick() {
+nf::core::StepResult Pipeline::Tick() {
     // Evaluates all pipeline stages, then advances to the next cycle
     // 1. Control pass WB -> IF, any stalls in the pipeline?
     // fetch is always ready
@@ -57,9 +58,11 @@ void Pipeline::Tick() {
         mem_wb_.Squash();
         ex_mem_.Squash();
         id_ex_.Squash();
+    } else if (mem_wb_.Q().halt) {
+        return nf::core::StepResult::kHalted;
     }
 
-    mem_.Evaluate(ex_mem_, mem_wb_, memory_, wb_ready);
+    mem_.Evaluate(ex_mem_, mem_wb_, memory_, wb_ready, tohost_addr_);
 
     Redirect ex_redir = ex_.Evaluate(id_ex_, ex_mem_, csrs_, mem_ready);
     if (ex_redir.valid){
@@ -78,8 +81,9 @@ void Pipeline::Tick() {
     id_ex_.Advance();
     ex_mem_.Advance();
     mem_wb_.Advance();
+    
+    return nf::core::StepResult::kOk;
 }
-
 
 
 
