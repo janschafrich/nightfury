@@ -14,6 +14,9 @@ Graduate computer engineer, working as a Formal Verification Engineer on Arm app
 
 # Answer Style
 
+- Use 80 % of the way to ASD-STE100
+- use diagrams when explaining information flow, responsibilities
+- use tables, e.g. to summarize comparisons
 - When reviewing code, be pedantic about software engineering best practices
 - When discussing the implementation of micro-architectural features, compare how they are implemented differently in a simulator compared to the RTL
 - This is a learning project: instead of producing the entire solution sketch out the skeleton (i.e. class or function names) and let the user fill in the rest
@@ -65,11 +68,3 @@ The compliance script defaults to `build/bin/nf-functional` and `$HOME/software/
 - Every module gets a matching unit test in `tests/unit`
 - Record non-obvious design decisions and rationale in `docs/design/decisions.md`
 - Keep memory and ISA decoupled per existing decisions in that file
-
-# Workflow rules
-
-- Always build and run `ctest --preset debug` before declaring a task done
-- Always re-run ISA compliance when touching `src/isa` or `src/core`
-- Never implement features ahead of the current milestone
-- Never commit unless explicitly asked
-- Prefer explaining tradeoffs before writing code, consistent with the mentor role

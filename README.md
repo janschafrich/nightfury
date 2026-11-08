@@ -58,6 +58,7 @@ cmake --build build --target nf-pipeline
 Must be compiled first.
 ```sh
 ./tests/isa-compliance/run-riscv-tests.sh
+NF_SIM=build/bin/nf-pipeline ./tests/isa-compliance/run-riscv-tests.sh 
 ```
 
 

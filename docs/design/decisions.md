@@ -62,19 +62,10 @@ Considered alternative: Reverse-order (WB->MEM->EX->ID->IF): Each stage consumes
 ## Commit Point:
 
 Once speculation arrives, execution and commit must be distinguishable
-Options:
-1. Execute in EX and Commit in WB: 
-- 
+Chose Execute in EX and Commit in WB as it exposes a limited amount of pipeline simulation complexity.  
 
-2. Execute-early, commit-at-retire
-- used by ChampSim
- 
-3. Speculative Execute with Repair:
-- better handling of misprediction-resolution (i.e. branch squashing)
-- relies an renamed registers
-- used by Gem5 
-
-Chose 1, execute in EX and commit WB 
+Also considered ChampSims approach, execute-early, commit-at-retire.
+Also considered Gem5 appraoch Speculative Execute with Repair. 
 
 
 ## Pipeline Configuration Location
@@ -88,10 +79,8 @@ Chose 1., single pipeline config, the simulator is not intended to grow very com
 
 ## Simulation Engine
 
-1. Plain cycle loop: jump from cycle to cycle
-2. Event driven: jump from event to event, allows to skip cycles. Interesting when modeling sytems with Caches, dozens of IO devices, DVFS
-
-Chose 1, as I want to learn micro-architectural modeling and not simulation infrastructure
+Implemented plain cycle loop: jump from cycle to cycle.
+Also considered event driven: jump from event to event, allows skipping cycles. Interesting when modeling systems with Caches, dozens of IO devices, DVFS. Not chosen due to complexity as I want to learn micro-architectural modeling and not simulation infrastructure
 
 
 ## Pipeline Location
