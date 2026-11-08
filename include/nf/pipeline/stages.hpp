@@ -42,6 +42,7 @@ class ExecuteStage {
         Redirect Evaluate (
             PipelineLatch<DecodePacket>     &id_ex,
             PipelineLatch<ExecutePacket>    &ex_mem,
+            const core::CsrFile             &csrs,
             const bool                      csm_ready
         );
     };

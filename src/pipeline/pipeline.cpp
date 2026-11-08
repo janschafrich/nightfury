@@ -16,6 +16,9 @@ WbAction ToWbAction (nf::isa::Mnemonic m) {
         case(Mnemonic::kEcall):     return WbAction::kEcall; 
         case(Mnemonic::kEbreak):    return WbAction::kEbreak; 
         case(Mnemonic::kMret):      return WbAction::kMret;
+        case(Mnemonic::kCsrrw):  case(Mnemonic::kCsrrs):  case(Mnemonic::kCsrrc): 
+        case(Mnemonic::kCsrrwi): case(Mnemonic::kCsrrsi): case(Mnemonic::kCsrrci):
+            return WbAction::kWrite;
         default:                    return WbAction::kNone; 
     }
 }
@@ -58,7 +61,7 @@ void Pipeline::Tick() {
 
     mem_.Evaluate(ex_mem_, mem_wb_, memory_, wb_ready);
 
-    Redirect ex_redir = ex_.Evaluate(id_ex_, ex_mem_, mem_ready);
+    Redirect ex_redir = ex_.Evaluate(id_ex_, ex_mem_, csrs_, mem_ready);
     if (ex_redir.valid){
         id_ex_.Squash();
     }

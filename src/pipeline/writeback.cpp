@@ -25,9 +25,9 @@ Redirect WritebackStage::Evaluate(
     regfile.Write(mem_wb.Q().rd, mem_wb.Q().wb_data);
 
     switch (mem_wb.Q().csr.action) {
-        // case (WbAction::kWrite):
-        //     csrs.Write(mem_wb.Q().csr.addr, mem_wb.Q().csr.new_value);
-        //     break;
+        case (WbAction::kWrite):
+            csrs.Write(mem_wb.Q().csr.addr, mem_wb.Q().csr.val);
+            break;
         case (WbAction::kEcall):
             // Write mstatus not modeled.
             csrs.set_mepc(mem_wb.Q().pc);

@@ -4,6 +4,7 @@
 #include "nf/core/interpreter.hpp"
 #include "nf/core/arch_state.hpp"
 #include "nf/core/alu.hpp"
+#include "nf/core/csr_update.hpp"
 
 namespace nf::core {
 
@@ -116,21 +117,9 @@ StepResult Interpreter::ProcessInstruction() {
                 inst_.mnemonic == Mnemonic::kCsrrsi ||
                 inst_.mnemonic == Mnemonic::kCsrrci;
             const uint32_t operand = is_immediate_form ? inst_.rs1 : rs1_val;
-
             uint32_t new_val = old;
-            switch (inst_.mnemonic) {
-                case Mnemonic::kCsrrw: case Mnemonic::kCsrrwi: new_val = operand; break;
-                case Mnemonic::kCsrrs: case Mnemonic::kCsrrsi: new_val = old | operand; break;
-                case Mnemonic::kCsrrc: case Mnemonic::kCsrrci: new_val = old & ~operand; break;
-                // The outer switch only reaches this block for the six CSR
-                // mnemonics above, so this default is truly unreachable --
-                // asserting that lets the compiler drop the bounds check it
-                // would otherwise need for a non-exhaustive jump table, and
-                // makes a future mismatch (e.g. a mnemonic added to one
-                // switch but not the other) a loud UBSan failure instead of
-                // a silently-stale new_val.
-                default: std::unreachable();
-            }
+            new_val = nf::core::CsrUpdate(inst_.mnemonic, old, operand);
+
             // Spec technically skips the write for csrrs/csrrc(i) when the
             // operand is zero (e.g. `csrr t5, mcause` expands to
             // `csrrs t5, mcause, x0`). Skipped here: old | 0 == old and

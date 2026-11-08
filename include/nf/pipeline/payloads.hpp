@@ -15,7 +15,7 @@ using nf::isa::DecodedInstruction;
 // Packets contain only what the downstream stage needs
 // They thereby define at which point in the pipeline a result is produced
 enum class WbAction : uint8_t {
-    kNone, kEcall, kEbreak, kMret
+    kNone, kEcall, kEbreak, kMret, kWrite
 };
 
 struct CsrPayload {

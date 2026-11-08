@@ -4,6 +4,7 @@ add_library(nf-core STATIC
     core/register_file.cpp
     core/csr_file.cpp
     core/alu.cpp
+    core/csr_update.cpp
     pipeline/pipeline.cpp
     pipeline/fetch.cpp
     pipeline/decode.cpp
