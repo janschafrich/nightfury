@@ -11,9 +11,9 @@ set -euo pipefail
 
 readonly RISCV_TESTS_DIR="${RISCV_TESTS_DIR:-$HOME/software/riscv-tests/isa}"
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly NF_FUNCTIONAL="${NF_FUNCTIONAL:-$script_dir/../../build/bin/nf-functional}"
+readonly NF_SIM="${NF_SIM:-$script_dir/../../build/bin/nf-functional}"
 
-[[ -x $NF_FUNCTIONAL ]] || { echo "error: nf-functional not built: $NF_FUNCTIONAL" >&2; exit 2; }
+[[ -x $NF_SIM ]] || { echo "error: nf-functional not built: $NF_SIM" >&2; exit 2; }
 [[ -d $RISCV_TESTS_DIR ]] || { echo "error: no riscv-tests dir: $RISCV_TESTS_DIR" >&2; exit 2; }
 
 pass=0
@@ -21,7 +21,7 @@ fail=0
 for elf in "$RISCV_TESTS_DIR"/rv32ui-p-* "$RISCV_TESTS_DIR"/rv32um-p-*; do
     [[ -f $elf && -x $elf ]] || continue   # skip *.dump, non-executables
     name="$(basename "$elf")"
-    if output="$("$NF_FUNCTIONAL" "$elf" 2>&1)"; then
+    if output="$("$NF_SIM" "$elf" 2>&1)"; then
         echo "PASS $name"
         pass=$((pass + 1))
     else
