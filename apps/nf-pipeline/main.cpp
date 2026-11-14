@@ -7,6 +7,7 @@ constexpr uint32_t kMemSize = 2 << 20;   // 2 MiByte
 
 int main(int argc, char *argv[]) {
 
+    printf("Intializing simulator\n");
     if (argc != 2) {
         std::cerr << "Expected a path to an elf to execute.";
         return 2;
@@ -24,6 +25,8 @@ int main(int argc, char *argv[]) {
         std::cout << "FAIL (test case " << (result.tohost_value >> 1) << ")\n";
         return 1;
     } catch (const std::exception &e) {
-        std::cerr << "nf-functional: " << e.what() << '\n';        
+        std::cerr << "nf-pipeline: " << e.what() << '\n';        
     }
+
+    return 2;   // should never reach
 }

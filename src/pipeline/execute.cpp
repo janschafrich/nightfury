@@ -40,13 +40,13 @@ Redirect ExecuteStage::Evaluate(
         // JAL // RISCV spec section 2.5.1
         if (inst.mnemonic == isa::Mnemonic::kJal) {
             redirect.valid  = true;
-            redirect.pc     = id_ex.Q().pc + inst.imm;
-            alu_result      = id_ex.Q().pc + 4;
+            redirect.pc     = id_ex.Q().pc + inst.imm;      // jump
+            alu_result      = id_ex.Q().pc + 4;             // link
         } 
         else if (inst.mnemonic == isa::Mnemonic::kJalr) {
             redirect.valid  = true;
-            redirect.pc     = id_ex.Q().rs1_val + inst.imm;              
-            alu_result      = id_ex.Q().pc + 4;
+            redirect.pc     = id_ex.Q().rs1_val + inst.imm; // jump             
+            alu_result      = id_ex.Q().pc + 4;             // link
                         
         } 
         else if (inst.format == isa::Format::kB) {
@@ -55,9 +55,15 @@ Redirect ExecuteStage::Evaluate(
             redirect.pc            = id_ex.Q().pc + inst.imm;
         }
     }
-    else {
+    else if (inst.is_alu) {
         nf::core::AluOp alu_op = nf::core::ToAluOp(inst.mnemonic);
         alu_result             = nf::core::Compute(alu_op, id_ex.Q().rs1_val, id_ex.Q().rs2_val);
+    } 
+    else if (inst.mnemonic == isa::Mnemonic::kLui) {
+        alu_result = inst.imm;
+    }
+    else if (inst.mnemonic == isa::Mnemonic::kAuipc) {
+        alu_result = id_ex.Q().pc + inst.imm;
     }
 
     uint16_t csr_addr = id_ex.Q().csr.addr;

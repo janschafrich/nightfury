@@ -16,6 +16,7 @@ namespace {
 // std::expected-shaped return channel to propagate them through -- same
 // "fail fast on a setup bug" rationale as mem::AccessFault.
 ElfImage RequireLoad(const std::string &elf_path, Memory &memory) {
+    printf("Loading elf into memory...\n");
     auto image = LoadElfFile(elf_path, memory);
     if (!image) {
         throw std::runtime_error(image.error().message);
@@ -54,6 +55,7 @@ SimResult Simulator::RunFunctional() {
 
 SimResult Simulator::RunPipeline() {
     StepResult result;
+    printf("starting simulation\n");
     do {
         result = pipeline_.Tick();
     } while (result != StepResult::kHalted);

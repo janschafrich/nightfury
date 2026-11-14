@@ -48,7 +48,7 @@ void DecodeStage::Evaluate(
     pkt.pc              = if_id.Q().pc;
     pkt.decoded_inst    = inst_dec;
     pkt.rs1_val         = rs1_val;
-    pkt.rs2_val         = regfile.Read(inst_dec.rs1);
+    pkt.rs2_val         = regfile.Read(inst_dec.rs2);
     pkt.csr             = csr;
 
     id_ex.Set(pkt);

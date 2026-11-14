@@ -230,6 +230,7 @@ DecodedInstruction Decoder::Decode(uint32_t word) {
         case kOpImm:
             ins.format = Format::kI;
             ins.imm = ImmI(word);
+            ins.is_alu = true;
             switch (ins.funct3) {
                 case 0b000: ins.mnemonic = Mnemonic::kAddi; break;
                 case 0b010: ins.mnemonic = Mnemonic::kSlti; break;
@@ -253,6 +254,7 @@ DecodedInstruction Decoder::Decode(uint32_t word) {
 
         case kOpReg:
             ins.format = Format::kR;
+            ins.is_alu = true;
             switch (ins.funct7) {
                 case kFunct7Base:
                     switch (ins.funct3) {

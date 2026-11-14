@@ -44,7 +44,7 @@ cmake --build build/debug --target nf-pipeline         # pipeline target
 ./tests/isa-compliance/run-riscv-tests.sh              # ISA compliance (exit 0 = all pass)
 ```
 
-The compliance script defaults to `build/bin/nf-functional` and `$HOME/software/riscv-tests/isa`; override with `NF_FUNCTIONAL` and `RISCV_TESTS_DIR` when using presets.
+The compliance script defaults to `build/bin/nf-functional` and `$HOME/software/riscv-tests/isa`; override with `NF_SIM` and `RISCV_TESTS_DIR` when using presets.
 
 # Codebase map
 

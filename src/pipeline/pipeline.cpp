@@ -39,6 +39,7 @@ Pipeline::Pipeline( mem::MemoryInterface &memory,
     csrs_(arch.csrs),
     tohost_addr_(tohost_addr)
 {
+    printf("start_pc=%x\n", start_pc);
     pc_.Set(start_pc);
     pc_.Advance();
 }

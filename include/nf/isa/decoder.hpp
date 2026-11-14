@@ -59,6 +59,7 @@ struct DecodedInstruction {
     bool is_control = false;
     bool is_load = false;
     bool is_store = false;
+    bool is_alu = false;
 };
 
 class Decoder {

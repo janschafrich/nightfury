@@ -29,20 +29,20 @@ class Pipeline {
         bool Halted() const;
     
     private:
-        PipelineLatch<uint32_t>         pc_;
+        PipelineLatch<uint32_t>                   pc_;
         PipelineLatch<pipeline::FetchPacket>      if_id_;
         PipelineLatch<pipeline::DecodePacket>     id_ex_;
         PipelineLatch<pipeline::ExecutePacket>    ex_mem_;
         PipelineLatch<pipeline::MemoryPacket>     mem_wb_;
 
-        nf::pipeline::FetchStage                      fe_;
-        nf::pipeline::DecodeStage                     de_;
-        nf::pipeline::ExecuteStage                    ex_;
-        nf::pipeline::MemoryStage                     mem_;
-        nf::pipeline::WritebackStage                  wb_;
-        nf::mem::MemoryInterface                      &memory_;       // shared with interpreter
-        nf::core::RegisterFile                        &regfile_;      // shared with interpreter
-        nf::core::CsrFile                             &csrs_;         // shared with interpreter
+        nf::pipeline::FetchStage                  fe_;
+        nf::pipeline::DecodeStage                 de_;
+        nf::pipeline::ExecuteStage                ex_;
+        nf::pipeline::MemoryStage                 mem_;
+        nf::pipeline::WritebackStage              wb_;
+        nf::mem::MemoryInterface                  &memory_;       // shared with interpreter
+        nf::core::RegisterFile                    &regfile_;      // shared with interpreter
+        nf::core::CsrFile                         &csrs_;         // shared with interpreter
         uint32_t                                  tohost_addr_;
     };
 

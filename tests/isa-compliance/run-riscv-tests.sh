@@ -16,6 +16,9 @@ readonly NF_SIM="${NF_SIM:-$script_dir/../../build/bin/nf-functional}"
 [[ -x $NF_SIM ]] || { echo "error: nf-functional not built: $NF_SIM" >&2; exit 2; }
 [[ -d $RISCV_TESTS_DIR ]] || { echo "error: no riscv-tests dir: $RISCV_TESTS_DIR" >&2; exit 2; }
 
+echo "RISCV_TESTS_DIR=$RISCV_TESTS_DIR"
+echo "NF_SIM=$NF_SIM"
+
 pass=0
 fail=0
 for elf in "$RISCV_TESTS_DIR"/rv32ui-p-* "$RISCV_TESTS_DIR"/rv32um-p-*; do
